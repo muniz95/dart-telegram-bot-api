@@ -1,0 +1,3 @@
+class BaseError {
+  BaseError();
+}
