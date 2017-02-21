@@ -1,8 +1,10 @@
 import 'package:eventable/eventable.dart';
 import 'dart:convert';
+import 'dart:developer';
 import './errors.dart';
 import './telegramBotWebHook.dart';
 import './telegramBotPolling.dart';
+import './telegramBotOptions.dart';
 // const debug = require('debug')('node-telegram-bot-api');
 // const EventEmitter = require('eventemitter3');
 // const fileType = require('file-type');
@@ -41,25 +43,25 @@ class TelegramBot extends EventEmitter {
     return _messageTypes;
   }
 
-  TelegramBot(String token, {options}) {
+  TelegramBot(String token, {TelegramBotOptions options}) {
     // super();
     this.token = token;
     this.options = options;
     if (this.options != null){
-      this.options['polling'] = (options['polling'] == null) ? false : options['polling'];
-      this.options['webHook'] = (options['webHook'] == null) ? false : options['webHook'];
-      this.options['baseApiUrl'] = options['baseApiUrl'] != '' ? options['baseApiUrl'] : "https://api.telegram.org";
-      this.options['filepath'] = (options['filepath'] == null) ? true : options['filepath'];
+      this.options.polling = (options.polling == null) ? false : options.polling;
+      this.options.webHook = (options.webHook == null) ? false : options.webHook;
+      this.options.baseApiUrl = options.baseApiUrl != '' ? options.baseApiUrl : "https://api.telegram.org";
+      this.options.filePath = (options.filePath == null) ? true : options.filePath;
   
-      if (options['polling'] != null) {
-        var autoStart = options['polling']['autoStart'];
+      if (options.polling != null) {
+        var autoStart = options.polling['autoStart'];
         if (autoStart != null || autoStart) {
           this.startPolling();
         }
       }
   
-      if (options['webHook'] != null) {
-        var autoOpen = options['webHook']['autoOpen'];
+      if (options.webHook != null) {
+        var autoOpen = options.webHook['autoOpen'];
         if (autoOpen == null || autoOpen) {
           this.openWebHook();
         }
@@ -80,7 +82,7 @@ class TelegramBot extends EventEmitter {
   //  * @see https://core.telegram.org/bots/api#making-requests
   //  */
   String _buildURL(_path) {
-    return "${this.options['baseApiUrl']}/bot${this.token}/${_path}";
+    return "${this.options.baseApiUrl}/bot${this.token}/${_path}";
   }
   //
   // /**
@@ -109,8 +111,8 @@ class TelegramBot extends EventEmitter {
       return Promise.reject(new errors.FatalError('Telegram Bot Token not provided!'));
     }
 
-    if (this.options['request']) {
-      Object.assign(options, this.options['request']);
+    if (this.options.request) {
+      Object.assign(options, this.options.request);
     }
 
     if (options.form) {
@@ -186,9 +188,9 @@ class TelegramBot extends EventEmitter {
           contentType: filetype.mime
         }
       };
-    } else if (!this.options.filepath) {
+    } else if (!this.options.filePath) {
       /**
-        * When the constructor option 'filepath' is set to
+        * When the constructor option 'filePath' is set to
         * 'false', we do not support passing file-paths.
         */
       fileId = data;
@@ -215,14 +217,14 @@ class TelegramBot extends EventEmitter {
   //  * @param  {Boolean} [options.restart=true] Consecutive calls to this method causes polling to be restarted
   //  * @return {Promise}
   //  */
-  startPolling(options) {
-    if(options == null) options = {};
+  startPolling({options}) {
+    if(options == null) options = new TelegramBotOptions();
     if (this.hasOpenWebHook()) {
       return Promise.reject(new errors.FatalError('Polling and WebHook are mutually exclusive'));
     }
-    options['restart'] = options['restart'] == null ? true : options.restart;
+    options.restart = options.restart == null ? true : options.restart;
     if (!this._polling) {
-      this._polling = new TelegramBotPolling(this);
+      this._polling = new TelegramBotPolling(bot: this);
     }
     return this._polling.start(options);
   }
@@ -270,7 +272,7 @@ class TelegramBot extends EventEmitter {
       return Promise.reject(new errors.FatalError('WebHook and Polling are mutually exclusive'));
     }
     if (!this._webHook) {
-      this._webHook = new TelegramBotWebHook(this);
+      this._webHook = new TelegramBotWebHook(bot: this);
     }
     return this._webHook.open();
   }

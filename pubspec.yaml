@@ -6,3 +6,4 @@ dependencies:
   html: any
   json: any
   eventable: any
+  dotenv: any
