@@ -7,3 +7,4 @@ dependencies:
   json: any
   eventable: any
   dotenv: any
+  http: any

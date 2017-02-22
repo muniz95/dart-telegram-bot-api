@@ -1,11 +1,9 @@
 class TelegramBotWebHook {
   TelegramBot bot;
   
-  TelegramBotWebHook({TelegramBot bot}){
-    this.bot = bot;
-  }
+  TelegramBotWebHook({this.bot});
   
   void open(){
-    print('opened');
+    print('It needs to be implemented: opened');
   }
 } 

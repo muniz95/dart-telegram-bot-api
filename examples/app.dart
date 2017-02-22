@@ -6,4 +6,7 @@ main() {
   load();
   TelegramBotOptions options = new TelegramBotOptions(polling: {'autoStart': true}, webHook: {'autoOpen': true});
   TelegramBot bot = new TelegramBot(env['TG_TOKEN'], options: options);
+  bot.onText("/start", (msg) {
+    bot.sendMessage(msg.chat.id, "funsiona");
+  });
 }
