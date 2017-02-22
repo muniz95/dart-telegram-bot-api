@@ -443,12 +443,12 @@ class TelegramBot extends EventEmitter {
     if (message != null) {
       this.emitEvent('message', message);
       var processMessageType = (messageType) {
-        if (message['messageType']) {
-          this.emit(messageType, message);
+        if (message['messageType'] != null) {
+          this.emitEvent(messageType, message);
         }
       };
-      TelegramBot.messageTypes.forEach(processMessageType);
-      if (message['text']) {
+      _messageTypes.forEach(processMessageType);
+      if (message['text'] != null) {
         this._textRegexpCallbacks.some((reg) {
           var result = reg.regexp.exec(message['text']);
           if (!result) {
@@ -459,7 +459,7 @@ class TelegramBot extends EventEmitter {
           return this.options.onlyFirstMatch;
         });
       }
-      if (message['reply_to_message']) {
+      if (message['reply_to_message'] != null) {
         // Only callbacks waiting for this message
         this._replyListeners.forEach((reply) {
           // Message from the same chat
@@ -473,35 +473,35 @@ class TelegramBot extends EventEmitter {
         });
       }
     } 
-    else if (editedMessage) {
-      this.emit('edited_message', editedMessage);
-      if (editedMessage.text) {
-        this.emit('edited_message_text', editedMessage);
+    else if (editedMessage != null) {
+      this.emitEvent('edited_message', editedMessage);
+      if (editedMessage['text'] != null) {
+        this.emitEvent('edited_message_text', editedMessage);
       }
-      if (editedMessage.caption) {
-        this.emit('edited_message_caption', editedMessage);
+      if (editedMessage['caption'] != null) {
+        this.emitEvent('edited_message_caption', editedMessage);
       }
     } 
-    else if (channelPost) {
-      this.emit('channel_post', channelPost);
+    else if (channelPost != null) {
+      this.emitEvent('channel_post', channelPost);
     }
-    else if (editedChannelPost) {
-      this.emit('edited_channel_post', editedChannelPost);
-      if (editedChannelPost.text) {
-        this.emit('edited_channel_post_text', editedChannelPost);
+    else if (editedChannelPost != null) {
+      this.emitEvent('edited_channel_post', editedChannelPost);
+      if (editedChannelPost['text']) {
+        this.emitEvent('edited_channel_post_text', editedChannelPost);
       }
       if (editedChannelPost.caption) {
-        this.emit('edited_channel_post_caption', editedChannelPost);
+        this.emitEvent('edited_channel_post_caption', editedChannelPost);
       }
     }
-    else if (inlineQuery) {
-      this.emit('inline_query', inlineQuery);
+    else if (inlineQuery != null) {
+      this.emitEvent('inline_query', inlineQuery);
     }
-    else if (chosenInlineResult) {
-      this.emit('chosen_inline_result', chosenInlineResult);
+    else if (chosenInlineResult != null) {
+      this.emitEvent('chosen_inline_result', chosenInlineResult);
     }
-    else if (callbackQuery) {
-      this.emit('callback_query', callbackQuery);
+    else if (callbackQuery != null) {
+      this.emitEvent('callback_query', callbackQuery);
     }
   }
   //
