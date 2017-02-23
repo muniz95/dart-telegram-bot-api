@@ -1,4 +1,4 @@
-import 'package:eventable/eventable.dart';
+import 'package:events/events.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
@@ -26,7 +26,7 @@ final List _messageTypes = [
   'new_chat_photo', 'delete_chat_photo', 'group_chat_created'
 ];
 
-class TelegramBot extends EventEmitter {
+class TelegramBot extends Events {
   String token;
   Map options;
   List _textRegexpCallbacks;
@@ -43,8 +43,7 @@ class TelegramBot extends EventEmitter {
     return _messageTypes;
   }
 
-  TelegramBot(String token, {TelegramBotOptions options}) {
-    // super();
+  TelegramBot(String token, {TelegramBotOptions options}) : super() {
     this.token = token;
     this.options = options;
     if (this.options != null){
@@ -128,26 +127,53 @@ class TelegramBot extends EventEmitter {
 
     String _url = this._buildURL(_path);
     options['forever'] = true;
+    var body = {};
     
-    return http.get(_url)
-      .then((resp) {
-        var data;
-        try {
-          data = JSON.decode(resp.body);
-        }
-        catch (err) {
-          throw new ParseError("Error parsing Telegram response: ${resp.body}", resp);
-        }
-
-        if (data["ok"]) {
-          return data['result'];
-        }
-
-        throw new TelegramError("${data['error_code']} ${data['description']}", resp);
-      })
-      .catchError((err){
-        print('deu m.... ${err}');
-      });
+    if(options['chat_id'] != null){
+      body['chat_id'] = options['chat_id'].toString();
+      body['text'] = options['text'];
+      
+      return http.post(_url, body: body)
+        .then((resp) {
+          var data;
+          try {
+            data = JSON.decode(resp.body);
+          }
+          catch (err) {
+            throw new ParseError("Error parsing Telegram response: ${resp.body}", resp);
+          }
+  
+          if (data["ok"]) {
+            return data['result'];
+          }
+  
+          throw new TelegramError("${data['error_code']} ${data['description']}", resp);
+        })
+        .catchError((err){
+          print('dando merda no post da mensagem ${err}');
+        });
+    }
+    else{
+      return http.post(_url)
+        .then((resp) {
+          var data;
+          try {
+            data = JSON.decode(resp.body);
+          }
+          catch (err) {
+            throw new ParseError("Error parsing Telegram response: ${resp.body}", resp);
+          }
+  
+          if (data["ok"]) {
+            return data['result'];
+          }
+  
+          throw new TelegramError("${data['error_code']} ${data['description']}", resp);
+        })
+        .catchError((err){
+          print('deu m.... ${err}');
+        });
+    }
     /* Alterar para algo equivalente
     return request(options)
       .then((resp) {
@@ -438,25 +464,26 @@ class TelegramBot extends EventEmitter {
     var chosenInlineResult = update['chosen_inline_result'];
     var callbackQuery = update['callback_query'];
     
-    print(message);
+    // print(message);
   
     if (message != null) {
-      this.emitEvent('message', message);
+      this.emit('message', message);
       var processMessageType = (messageType) {
         if (message['messageType'] != null) {
-          this.emitEvent(messageType, message);
+          this.emit(messageType, message);
         }
       };
       _messageTypes.forEach(processMessageType);
       if (message['text'] != null) {
-        this._textRegexpCallbacks.some((reg) {
-          var result = reg.regexp.exec(message['text']);
-          if (!result) {
+        this._textRegexpCallbacks.forEach((reg) {
+          // var result = reg.regexp.exec(message['text']);
+          var result = reg['regexp'].allMatches(message['text']);
+          if (result.length == 0) {
             return false;
           }
-          reg.callback(message, result);
+          reg['callback'](message);
           // returning truthy value exits .some
-          return this.options.onlyFirstMatch;
+          // return this.options.firstMatch;
         });
       }
       if (message['reply_to_message'] != null) {
@@ -474,34 +501,34 @@ class TelegramBot extends EventEmitter {
       }
     } 
     else if (editedMessage != null) {
-      this.emitEvent('edited_message', editedMessage);
+      this.emit('edited_message', editedMessage);
       if (editedMessage['text'] != null) {
-        this.emitEvent('edited_message_text', editedMessage);
+        this.emit('edited_message_text', editedMessage);
       }
       if (editedMessage['caption'] != null) {
-        this.emitEvent('edited_message_caption', editedMessage);
+        this.emit('edited_message_caption', editedMessage);
       }
     } 
     else if (channelPost != null) {
-      this.emitEvent('channel_post', channelPost);
+      this.emit('channel_post', channelPost);
     }
     else if (editedChannelPost != null) {
-      this.emitEvent('edited_channel_post', editedChannelPost);
+      this.emit('edited_channel_post', editedChannelPost);
       if (editedChannelPost['text']) {
-        this.emitEvent('edited_channel_post_text', editedChannelPost);
+        this.emit('edited_channel_post_text', editedChannelPost);
       }
       if (editedChannelPost.caption) {
-        this.emitEvent('edited_channel_post_caption', editedChannelPost);
+        this.emit('edited_channel_post_caption', editedChannelPost);
       }
     }
     else if (inlineQuery != null) {
-      this.emitEvent('inline_query', inlineQuery);
+      this.emit('inline_query', inlineQuery);
     }
     else if (chosenInlineResult != null) {
-      this.emitEvent('chosen_inline_result', chosenInlineResult);
+      this.emit('chosen_inline_result', chosenInlineResult);
     }
     else if (callbackQuery != null) {
-      this.emitEvent('callback_query', callbackQuery);
+      this.emit('callback_query', callbackQuery);
     }
   }
   //
@@ -513,11 +540,11 @@ class TelegramBot extends EventEmitter {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#sendmessage
   //  */
-  sendMessage(chatId, text, {form}) {
-    if(form == null) form = {};
-    form.chat_id = chatId;
-    form.text = text;
-    return this._request('sendMessage', { form });
+  sendMessage(chatId, text, {options}) {
+    if(options == null) options = {};
+    options['chat_id'] = chatId;
+    options['text'] = text;
+    return this._request('sendMessage', options: options);
   }
   //
   // /**
@@ -999,7 +1026,7 @@ class TelegramBot extends EventEmitter {
   //  * the "msg" and the result of executing "regexp.exec" on message text.
   //  */
   onText(regexp, callback) {
-    this._textRegexpCallbacks.add({ regexp: callback });
+    this._textRegexpCallbacks.add({ 'regexp': regexp, 'callback': callback });
   }
   //
   // /**

@@ -8,3 +8,4 @@ dependencies:
   eventable: any
   dotenv: any
   http: any
+  events: any

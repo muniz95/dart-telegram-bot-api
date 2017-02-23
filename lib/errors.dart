@@ -32,6 +32,7 @@ class ParseError extends BaseError {
 
 
 class TelegramError extends BaseError {
+  dynamic response;
   /**
    * Error returned from Telegram. Error code is `"ETELEGRAM"`.
    * @class TelegramError
