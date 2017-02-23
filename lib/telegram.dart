@@ -268,7 +268,7 @@ class TelegramBot extends Events {
   //  * @param  {Boolean} [options.restart=true] Consecutive calls to this method causes polling to be restarted
   //  * @return {Promise}
   //  */
-  startPolling({Map options}) {
+  startPolling({Map options}) async {
     if(options == null) options = new Map();
     if (this.hasOpenWebHook()) {
       return Promise.reject(new FatalError('Polling and WebHook are mutually exclusive'));
@@ -277,7 +277,7 @@ class TelegramBot extends Events {
     if (!this._polling) {
       this._polling = new TelegramBotPolling(bot: this, timeout: 3000, interval: 3000, offset: 3000);
     }
-    return this._polling.start(options: options);
+    return await this._polling.start(options: options);
   }
   //
   // /**
