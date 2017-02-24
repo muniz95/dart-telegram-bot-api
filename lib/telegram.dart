@@ -2,7 +2,6 @@ import 'package:events/events.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
-import 'dart:developer';
 import './errors.dart';
 import './telegramBotWebHook.dart';
 import './telegramBotPolling.dart';
@@ -35,41 +34,43 @@ class TelegramBot extends Events {
   dynamic _polling;
   dynamic _webHook;
 
-  static BaseError errors() {
-    return new BaseError();
-  }
+  // static BaseError errors() {
+  //   return new BaseError();
+  // }
 
   static List messageTypes() {
     return _messageTypes;
   }
 
-  TelegramBot(String token, {TelegramBotOptions options}) : super() {
+  TelegramBot(String token, {Map options}) : super() {
     this.token = token;
     this.options = options;
-    if (this.options != null){
-      this.options.polling = (options.polling == null) ? false : options.polling;
-      this.options.webHook = (options.webHook == null) ? false : options.webHook;
-      this.options.baseApiUrl = "https://api.telegram.org";
+    if (this.options != null) {
+      this.options['polling'] = options['polling'];
+      this.options['webHook'] = options['webHook'];
+      this.options['onlyFirstMatch'] = (options['onlyFirstMatch'] == null) ? false : options['onlyFirstMatch'];
+      this.options['baseApiUrl'] = "https://api.telegram.org";
       ///////////////////////////////Arrumo depois////////////////////////////////////////////////////////////
       ////////////////////////////////////////////////////////////////////////////////////////////////////////
       // this.options.baseApiUrl = options.baseApiUrl != '' ? options.baseApiUrl : "https://api.telegram.org";
       ////////////////////////////////////////////////////////////////////////////////////////////////////////
-      this.options.filePath = (options.filePath == null) ? true : options.filePath;
+      this.options['filePath'] = (options['filePath'] == null) ? true : options['filePath'];
   
-      if (options.polling != null) {
-        var autoStart = options.polling['autoStart'];
-        if (autoStart != null || autoStart) {
+      if (options['polling'] != null) {
+        var autoStart = options['polling']['autoStart'];
+        if (autoStart != null) {
           this.startPolling();
         }
       }
   
-      if (options.webHook != null) {
-        var autoOpen = options.webHook['autoOpen'];
-        if (autoOpen == null || autoOpen) {
+      if (options['webHook'] != null) {
+        var autoOpen = options['webHook']['autoOpen'];
+        if (autoOpen != null) {
           this.openWebHook();
         }
       }
     }
+    
     this._textRegexpCallbacks = [];
     this._replyListenerId = 0;
     this._replyListeners = [];
@@ -85,7 +86,7 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#making-requests
   //  */
   String _buildURL(_path) {
-    return "${this.options.baseApiUrl}/bot${this.token}/${_path}";
+    return "${this.options['baseApiUrl']}/bot${this.token}/${_path}";
   }
   //
   // /**
@@ -98,7 +99,8 @@ class TelegramBot extends Events {
   void _fixReplyMarkup(obj) {
     var replyMarkup = obj.reply_markup;
     if (replyMarkup && !(replyMarkup is String)) {
-      obj.reply_markup = JSON.stringify(replyMarkup);
+      print('FIX: find a replacement for stringify() method');
+      // obj.reply_markup = JSON.stringify(replyMarkup);
     }
   }
   //
@@ -111,7 +113,7 @@ class TelegramBot extends Events {
   //  */
   _request(_path, {options}) async {
     if (this.token == null) {
-      return await Future.error(new FatalError('Telegram Bot Token not provided!'));
+      return Future.error(new FatalError('Telegram Bot Token not provided!'));
     }
 
     // if (this.options['request'] != null) {
@@ -128,7 +130,7 @@ class TelegramBot extends Events {
     String _url = this._buildURL(_path);
     options['forever'] = true;
     var body = {};
-    
+
     if(options['chat_id'] != null){
       body['chat_id'] = options['chat_id'].toString();
       body['text'] = options['text'];
@@ -214,50 +216,61 @@ class TelegramBot extends Events {
     var formData;
     var fileName;
     var fileId;
-    if (data instanceof stream.Stream) {
-      // Will be 'null' if could not be parsed. Default to 'filename'.
-      // For example, 'data.path' === '/?id=123' from 'request("https://example.com/?id=123")'
-      fileName = URL.parse(path.basename(data.path.toString())).pathname || 'filename';
-      formData = {};
-      formData[type] = {
-        value: data,
-        options: {
-          filename: qs.unescape(fileName),
-          contentType: mime.lookup(fileName)
-        }
-      };
-    } else if (Buffer.isBuffer(data)) {
-      const filetype = fileType(data);
-      if (!filetype) {
-        throw new FatalError('Unsupported Buffer file type');
-      }
-      formData = {};
-      formData[type] = {
-        value: data,
-        options: {
-          filename: "data.${filetype.ext}",
-          contentType: filetype.mime
-        }
-      };
-    } else if (!this.options.filePath) {
-      /**
-        * When the constructor option 'filePath' is set to
-        * 'false', we do not support passing file-paths.
-        */
-      fileId = data;
-    } else if (fs.existsSync(data)) {
-      fileName = path.basename(data);
-      formData = {};
-      formData[type] = {
-        value: fs.createReadStream(data),
-        options: {
-          filename: fileName,
-          contentType: mime.lookup(fileName)
-        }
-      };
-    } else {
-      fileId = data;
-    }
+    // FIX: find a proper replacement for the stream.Stream type
+    // 
+    // if (data is stream.Stream) {
+    //   // Will be 'null' if could not be parsed. Default to 'filename'.
+    //   // For example, 'data.path' === '/?id=123' from 'request("https://example.com/?id=123")'
+    //   fileName = URL.parse(path.basename(data.path.toString())).pathname || 'filename';
+    //   formData = {};
+    //   formData['type'] = {
+    //     'value': data,
+    //     'options': {
+    //       'filename': qs.unescape(fileName),
+    //       'contentType': mime.lookup(fileName)
+    //     }
+    //   };
+    // } 
+    
+    // FIX: find a replacement for fileType() method
+    // 
+    // else if (Buffer.isBuffer(data)) {
+    //   var filetype = fileType(data);
+    //   if (filetype == null) {
+    //     throw new FatalError('Unsupported Buffer file type');
+    //   }
+    //   formData = {};
+    //   formData['type'] = {
+    //     'value': data,
+    //     'options': {
+    //       'filename': "data.${filetype.ext}",
+    //       'contentType': filetype['mime']
+    //     }
+    //   };
+    // }
+    // else if (this.options.filePath == null) {
+    //   /**
+    //     * When the constructor option 'filePath' is set to
+    //     * 'false', we do not support passing file-paths.
+    //     */
+    //   fileId = data;
+    // }
+    // // FIX: find a replacement for the fs object
+    // // 
+    // // else if (fs.existsSync(data)) {
+    // //   fileName = path.basename(data);
+    // //   formData = {};
+    // //   formData[type] = {
+    // //     value: fs.createReadStream(data),
+    // //     options: {
+    // //       filename: fileName,
+    // //       contentType: mime.lookup(fileName)
+    // //     }
+    // //   };
+    // // }
+    // else {
+    //   fileId = data;
+    // }
     return [formData, fileId];
   }
   //
@@ -271,11 +284,12 @@ class TelegramBot extends Events {
   startPolling({Map options}) async {
     if(options == null) options = new Map();
     if (this.hasOpenWebHook()) {
-      return Promise.reject(new FatalError('Polling and WebHook are mutually exclusive'));
+      print('FIX: find a replacement for Promise object');
+      // return Promise.reject(new FatalError('Polling and WebHook are mutually exclusive'));
     }
     options['restart'] = options['restart'] == null ? true : options['restart'];
     if (!this._polling) {
-      this._polling = new TelegramBotPolling(bot: this, timeout: 3000, interval: 3000, offset: 3000);
+      this._polling = new TelegramBotPolling(this);
     }
     return await this._polling.start(options: options);
   }
@@ -287,7 +301,6 @@ class TelegramBot extends Events {
   //  * @deprecated
   //  */
   initPolling() {
-    deprecate('TelegramBot#initPolling() is deprecated');
     return this.startPolling();
   }
   //
@@ -299,7 +312,8 @@ class TelegramBot extends Events {
   //  */
   stopPolling() {
     if (!this._polling) {
-      return Promise.resolve();
+      print('FIX: find a replacement for Promise object');
+      // return Promise.resolve();
     }
     return this._polling.stop();
   }
@@ -320,7 +334,8 @@ class TelegramBot extends Events {
   //  */
   openWebHook() {
     if (this.isPolling()) {
-      return Promise.reject(new FatalError('WebHook and Polling are mutually exclusive'));
+      print('FIX: find a replacement for Promise object');
+      // return Promise.reject(new FatalError('WebHook and Polling are mutually exclusive'));
     }
     if (!this._webHook) {
       this._webHook = new TelegramBotWebHook(bot: this);
@@ -335,7 +350,8 @@ class TelegramBot extends Events {
   //  */
   closeWebHook() {
     if (!this._webHook) {
-      return Promise.resolve();
+      print('FIX: find a replacement for Promise object');
+      // return Promise.resolve();
     }
     return this._webHook.close();
   }
@@ -354,9 +370,9 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#getme
   //  */
-  getMe() {
+  getMe() async {
     String _path = 'getMe';
-    return this._request(_path);
+    return await this._request(_path);
   }
   //
   // /**
@@ -371,33 +387,27 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#setwebhook
   //  */
-  setWebHook(url, options) {
+  setWebHook(url, {options}) {
     /* The older method signature was setWebHook(url, cert).
       * We need to ensure backwards-compatibility while maintaining
       * consistency of the method signatures throughout the library */
     if(options == null) options = {};
-    var cert;
-    // Note: 'options' could be an object, if a stream was provided (in place of 'cert')
-    if (typeof options !== 'object' || options instanceof stream.Stream) {
-      deprecate('The method signature setWebHook(url, cert) has been deprecated since v0.25.0');
-      cert = options;
-      options = {}; // eslint-disable-line no-param-reassign
-    } else {
-      cert = options.certificate;
-    }
+    var cert = options.certificate;
   
-    const opts = {
-      qs: options,
+    Map opts = {
+      'qs': options
     };
-    opts.qs.url = url;
+    opts['qs']['url'] = url;
   
-    if (cert) {
+    if (cert != null) {
       try {
-        const sendData = this._formatSendData('certificate', cert);
-        opts.formData = sendData[0];
-        opts.qs.certificate = sendData[1];
-      } catch (ex) {
-        return Promise.reject(ex);
+        var sendData = this._formatSendData('certificate', cert);
+        opts['formData'] = sendData[0];
+        opts['qs']['certificate'] = sendData[1];
+      } 
+      catch (ex) {
+        print('FIX: find a replacement for Promise object');
+        // return Promise.reject(ex);
       }
     }
   
@@ -412,6 +422,10 @@ class TelegramBot extends Events {
   //  */
   deleteWebHook() {
     return this._request('deleteWebhook');
+  }
+  
+  unsetWebHook() {
+    return this._request('setWebHook');
   }
   //
   // /**
@@ -435,17 +449,8 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#getupdates
   //  */
-  getUpdates({timeout, limit, offset}) {
-    /* The older method signature was getUpdates(timeout, limit, offset).
-      * We need to ensure backwards-compatibility while maintaining
-      * consistency of the method signatures throughout the library */
-    Map options = {
-      'timeout': timeout,
-      'limit': limit,
-      'offset': offset
-    };
-  
-    return this._request('getUpdates', options: options);
+  getUpdates(options) async {
+    return await this._request('getUpdates', options: options);
   }
   //
   // /**
@@ -464,8 +469,6 @@ class TelegramBot extends Events {
     var chosenInlineResult = update['chosen_inline_result'];
     var callbackQuery = update['callback_query'];
     
-    // print(message);
-  
     if (message != null) {
       this.emit('message', message);
       var processMessageType = (messageType) {
@@ -473,7 +476,7 @@ class TelegramBot extends Events {
           this.emit(messageType, message);
         }
       };
-      _messageTypes.forEach(processMessageType);
+      messageTypes().forEach(processMessageType);
       if (message['text'] != null) {
         this._textRegexpCallbacks.forEach((reg) {
           // var result = reg.regexp.exec(message['text']);
@@ -481,9 +484,10 @@ class TelegramBot extends Events {
           if (result.length == 0) {
             return false;
           }
-          reg['callback'](message);
+          reg['callback'](message, result);
           // returning truthy value exits .some
-          // return this.options.firstMatch;
+          // return this.options.onlyFirstMatch;
+          return this.options['onlyFirstMatch'];
         });
       }
       if (message['reply_to_message'] != null) {
@@ -494,12 +498,14 @@ class TelegramBot extends Events {
             // Responding to that message
             if (reply['messageId'] == message['reply_to_message']['message_id']) {
               // Resolve the promise
-              reply.callback(message);
+              reply['callback'](message);
             }
           }
         });
       }
-    } 
+    }
+    
+    /* Parado por agora
     else if (editedMessage != null) {
       this.emit('edited_message', editedMessage);
       if (editedMessage['text'] != null) {
@@ -530,6 +536,8 @@ class TelegramBot extends Events {
     else if (callbackQuery != null) {
       this.emit('callback_query', callbackQuery);
     }
+    */
+    
   }
   //
   // /**
@@ -555,11 +563,12 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#answerinlinequery
   //  */
-  answerInlineQuery(inlineQueryId, results, {form}) {
-    if(form == null) form = {};
-    form.inline_query_id = inlineQueryId;
-    form.results = JSON.stringify(results);
-    return this._request('answerInlineQuery', { form });
+  answerInlineQuery(inlineQueryId, results, {options}) {
+    if(options == null) options = {};
+    options['inline_query_id'] = inlineQueryId;
+    print('FIX: find a replacement for stringify() method');
+    // options['results'] = JSON.stringify(results);
+    return this._request('answerInlineQuery', options: options);
   }
   //
   // /**
@@ -571,12 +580,12 @@ class TelegramBot extends Events {
   //  * @param  {Object} [options] Additional Telegram query options
   //  * @return {Promise}
   //  */
-  forwardMessage(chatId, fromChatId, messageId, {form}) {
-    if(form == null) form = {};
-    form.chat_id = chatId;
-    form.from_chat_id = fromChatId;
-    form.message_id = messageId;
-    return this._request('forwardMessage', { form });
+  forwardMessage(chatId, fromChatId, messageId, {options}) {
+    if(options == null) options = {};
+    options['chat_id'] = chatId;
+    options['from_chat_id'] = fromChatId;
+    options['message_id'] = messageId;
+    return this._request('forwardMessage', options: options);
   }
   //
   // /**
@@ -590,18 +599,20 @@ class TelegramBot extends Events {
   //  */
   sendPhoto(chatId, photo, {options}) {
     if(options == null) options = {};
-    const opts = {
-      qs: options,
+    var opts = {
+      'qs': options
     };
-    opts.qs.chat_id = chatId;
+    opts['qs']['chat_id'] = chatId;
     try {
-      const sendData = this._formatSendData('photo', photo);
-      opts.formData = sendData[0];
-      opts.qs.photo = sendData[1];
-    } catch (ex) {
-      return Promise.reject(ex);
+      var sendData = this._formatSendData('photo', photo);
+      opts['formData'] = sendData[0];
+      opts['qs']['photo'] = sendData[1];
     }
-    return this._request('sendPhoto', opts);
+    catch (ex) {
+      print('FIX: find a replacement for Promise object');
+      // return Promise.reject(ex);
+    }
+    return this._request('sendPhoto', options: opts);
   }
   //
   // /**
@@ -615,18 +626,20 @@ class TelegramBot extends Events {
   //  */
   sendAudio(chatId, audio, {options}) {
     if(options == null) options = {};
-    const opts = {
-      qs: options
+    Map opts = {
+      'qs': options
     };
-    opts.qs.chat_id = chatId;
+    opts['qs']['chat_id'] = chatId;
     try {
-      const sendData = this._formatSendData('audio', audio);
-      opts.formData = sendData[0];
-      opts.qs.audio = sendData[1];
-    } catch (ex) {
-      return Promise.reject(ex);
+      var sendData = this._formatSendData('audio', audio);
+      opts['formData'] = sendData[0];
+      opts['qs']['audio'] = sendData[1];
     }
-    return this._request('sendAudio', opts);
+    catch (ex) {
+      print('FIX: find a replacement for Promise object');
+      // return Promise.reject(ex);
+    }
+    return this._request('sendAudio', options: opts);
   }
   //
   // /**
@@ -642,21 +655,23 @@ class TelegramBot extends Events {
   sendDocument(chatId, doc, {options, fileOpts}) {
     if(options == null) options = {};
     if(fileOpts == null) fileOpts = {};
-    const opts = {
-      qs: options
+    Map opts = {
+      'qs': options
     };
-    opts.qs.chat_id = chatId;
+    opts['qs']['chat_id'] = chatId;
     try {
-      const sendData = this._formatSendData('document', doc);
-      opts.formData = sendData[0];
-      opts.qs.document = sendData[1];
+      var sendData = this._formatSendData('document', doc);
+      opts['formData'] = sendData[0];
+      opts['qs']['document'] = sendData[1];
     } catch (ex) {
-      return Promise.reject(ex);
+      print('FIX: find a replacement for Promise object');
+      // return Promise.reject(ex);
     }
-    if (opts.formData && Object.keys(fileOpts).length) {
-      opts.formData.document.options = fileOpts;
-    }
-    return this._request('sendDocument', opts);
+    print('FIX: find a replacement for Object.keys method');
+    // if (opts['formData'] && Object.keys(fileOpts).length) {
+    //   opts['formData'].document.options = fileOpts;
+    // }
+    return this._request('sendDocument', options: opts);
   }
   //
   // /**
@@ -670,18 +685,19 @@ class TelegramBot extends Events {
   //  */
   sendSticker(chatId, sticker, {options}) {
     if(options == null) options = {};
-    const opts = {
-      qs: options
+    Map opts = {
+      'qs': options
     };
-    opts.qs.chat_id = chatId;
+    opts['qs']['chat_id'] = chatId;
     try {
-      const sendData = this._formatSendData('sticker', sticker);
-      opts.formData = sendData[0];
-      opts.qs.sticker = sendData[1];
+      var sendData = this._formatSendData('sticker', sticker);
+      opts['formData'] = sendData[0];
+      opts['qs']['sticker'] = sendData[1];
     } catch (ex) {
-      return Promise.reject(ex);
+      print('FIX: find a replacement for Promise object');
+      // return Promise.reject(ex);
     }
-    return this._request('sendSticker', opts);
+    return this._request('sendSticker', options: opts);
   }
   //
   // /**
@@ -695,18 +711,20 @@ class TelegramBot extends Events {
   //  */
   sendVideo(chatId, video, {options}) {
     if(options == null) options = {};
-    const opts = {
-      qs: options
+    Map opts = {
+      'qs': options
     };
-    opts.qs.chat_id = chatId;
+    opts['qs']['chat_id'] = chatId;
     try {
-      const sendData = this._formatSendData('video', video);
-      opts.formData = sendData[0];
-      opts.qs.video = sendData[1];
-    } catch (ex) {
-      return Promise.reject(ex);
+      var sendData = this._formatSendData('video', video);
+      opts['formData'] = sendData[0];
+      opts['qs']['video'] = sendData[1];
     }
-    return this._request('sendVideo', opts);
+    catch (ex) {
+      print('FIX: find a replacement for Promise object');
+      // return Promise.reject(ex);
+    }
+    return this._request('sendVideo', options: opts);
   }
   //
   // /**
@@ -720,18 +738,19 @@ class TelegramBot extends Events {
   //  */
   sendVoice(chatId, voice, {options}) {
     if(options == null) options = {};
-    const opts = {
-      qs: options
+    Map opts = {
+      'qs': options
     };
-    opts.qs.chat_id = chatId;
+    opts['qs']['chat_id'] = chatId;
     try {
-      const sendData = this._formatSendData('voice', voice);
-      opts.formData = sendData[0];
-      opts.qs.voice = sendData[1];
+      var sendData = this._formatSendData('voice', voice);
+      opts['formData'] = sendData[0];
+      opts['qs']['voice'] = sendData[1];
     } catch (ex) {
-      return Promise.reject(ex);
+      print('FIX: find a replacement for Promise object');
+      // return Promise.reject(ex);
     }
-    return this._request('sendVoice', opts);
+    return this._request('sendVoice', options: opts);
   }
   //
   //
@@ -748,11 +767,11 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#sendchataction
   //  */
   sendChatAction(chatId, action) {
-    const form = {
-      action,
-      chat_id: chatId
+    Map options = {
+      'action': action,
+      'chat_id': chatId
     };
-    return this._request('sendChatAction', { form });
+    return this._request('sendChatAction', options: options);
   }
   //
   // /**
@@ -768,11 +787,11 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#kickchatmember
   //  */
   kickChatMember(chatId, userId) {
-    const form = {
-      chat_id: chatId,
-      user_id: userId
+    Map options = {
+      'chat_id': chatId,
+      'user_id': userId
     };
-    return this._request('kickChatMember', { form });
+    return this._request('kickChatMember', options: options);
   }
   //
   // /**
@@ -787,11 +806,11 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#unbanchatmember
   //  */
   unbanChatMember(chatId, userId) {
-    const form = {
-      chat_id: chatId,
-      user_id: userId
+    Map options = {
+      'chat_id': chatId,
+      'user_id': userId
     };
-    return this._request('unbanChatMember', { form });
+    return this._request('unbanChatMember', options: options);
   }
   //
   // /**
@@ -807,12 +826,12 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#answercallbackquery
   //  */
-  answerCallbackQuery(callbackQueryId, text, showAlert, {form}) {
-    if(form == null) form = {};
-    form.callback_query_id = callbackQueryId;
-    form.text = text;
-    form.show_alert = showAlert;
-    return this._request('answerCallbackQuery', { form });
+  answerCallbackQuery(callbackQueryId, text, showAlert, {options}) {
+    if(options == null) options = {};
+    options['callback_query_id'] = callbackQueryId;
+    options['text'] = text;
+    options['show_alert'] = showAlert;
+    return this._request('answerCallbackQuery', options: options);
   }
   //
   // /**
@@ -828,10 +847,10 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#editmessagetext
   //  */
-  editMessageText(text, {form}) {
-    if(form == null) form = {};
-    form.text = text;
-    return this._request('editMessageText', { form });
+  editMessageText(text, {options}) {
+    if(options == null) options = {};
+    options['text'] = text;
+    return this._request('editMessageText', options: options);
   }
   //
   // /**
@@ -847,10 +866,10 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#editmessagecaption
   //  */
-  editMessageCaption(caption, {form}) {
-    if(form == null) form = {};
-    form.caption = caption;
-    return this._request('editMessageCaption', { form });
+  editMessageCaption(caption, {options}) {
+    if(options == null) options = {};
+    options['caption'] = caption;
+    return this._request('editMessageCaption', options: options);
   }
   //
   // /**
@@ -866,10 +885,10 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#editmessagetext
   //  */
-  editMessageReplyMarkup(replyMarkup, {form}) {
-    if(form == null) form = {};
-    form.reply_markup = replyMarkup;
-    return this._request('editMessageReplyMarkup', { form });
+  editMessageReplyMarkup(replyMarkup, {options}) {
+    if(options == null) options = {};
+    options['reply_markup'] = replyMarkup;
+    return this._request('editMessageReplyMarkup', options: options);
   }
   //
   // /**
@@ -883,22 +902,10 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#getuserprofilephotos
   //  */
-  getUserProfilePhotos(userId, {form}) {
-    if(form == null) form = {};
-    /* The older method signature was getUserProfilePhotos(userId, offset, limit).
-      * We need to ensure backwards-compatibility while maintaining
-      * consistency of the method signatures throughout the library */
-    if (typeof form !== 'object') {
-      /* eslint-disable no-param-reassign, prefer-rest-params */
-      deprecate('The method signature getUserProfilePhotos(userId, offset, limit) has been deprecated since v0.25.0');
-      form = {
-        offset: arguments[1],
-        limit: arguments[2],
-      };
-      /* eslint-enable no-param-reassign, prefer-rest-params */
-    }
-    form.user_id = userId;
-    return this._request('getUserProfilePhotos', { form });
+  getUserProfilePhotos(userId, {options}) {
+    if(options == null) options = {};
+    options['user_id'] = userId;
+    return this._request('getUserProfilePhotos', options: options);
   }
   //
   // /**
@@ -912,12 +919,12 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#sendlocation
   //  */
-  sendLocation(chatId, latitude, longitude, {form}) {
-    if(form == null) form = {};
-    form.chat_id = chatId;
-    form.latitude = latitude;
-    form.longitude = longitude;
-    return this._request('sendLocation', { form });
+  sendLocation(chatId, latitude, longitude, {options}) {
+    if(options == null) options = {};
+    options['chat_id'] = chatId;
+    options['latitude'] = latitude;
+    options['longitude'] = longitude;
+    return this._request('sendLocation', options: options);
   }
   //
   // /**
@@ -933,14 +940,14 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#sendvenue
   //  */
-  sendVenue(chatId, latitude, longitude, title, address, {form}) {
-    if(form == null) form = {};
-    form.chat_id = chatId;
-    form.latitude = latitude;
-    form.longitude = longitude;
-    form.title = title;
-    form.address = address;
-    return this._request('sendVenue', { form });
+  sendVenue(chatId, latitude, longitude, title, address, {options}) {
+    if(options == null) options = {};
+    options['chat_id'] = chatId;
+    options['latitude'] = latitude;
+    options['longitude'] = longitude;
+    options['title'] = title;
+    options['address'] = address;
+    return this._request('sendVenue', options: options);
   }
   //
   // /**
@@ -954,12 +961,12 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#sendcontact
   //  */
-  sendContact(chatId, phoneNumber, firstName, {form}) {
-    if(form == null) form = {};
-    form.chat_id = chatId;
-    form.phone_number = phoneNumber;
-    form.first_name = firstName;
-    return this._request('sendContact', { form });
+  sendContact(chatId, phoneNumber, firstName, {options}) {
+    if(options == null) options = {};
+    options['chat_id'] = chatId;
+    options['phone_number'] = phoneNumber;
+    options['first_name'] = firstName;
+    return this._request('sendContact', options: options);
   }
   //
   //
@@ -973,8 +980,8 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#getfile
   //  */
   getFile(fileId) {
-    const form = { file_id: fileId };
-    return this._request('getFile', { form });
+    Map options = { 'file_id': fileId };
+    return this._request('getFile', options: options);
   }
   //
   // /**
@@ -991,7 +998,7 @@ class TelegramBot extends Events {
   //  */
   getFileLink(fileId) {
     return this.getFile(fileId)
-      .then(resp => "${this.options.baseApiUrl}/file/bot${this.token}/${resp.file_path}");
+      .then((resp) => "${this.options['baseApiUrl']}/file/bot${this.token}/${resp['file_path']}");
   }
   //
   // /**
@@ -1005,17 +1012,17 @@ class TelegramBot extends Events {
   downloadFile(fileId, downloadDir) {
     return this
       .getFileLink(fileId)
-      .then(fileURI => {
-        const fileName = fileURI.slice(fileURI.lastIndexOf('/') + 1);
+      .then((fileURI) {
+        String fileName = fileURI.slice(fileURI.lastIndexOf('/') + 1);
         // TODO: Ensure fileName doesn't contains slashes
-        const filePath = "${downloadDir}/${fileName}";
+        String filePath = "${downloadDir}/${fileName}";
   
-        // properly handles errors and closes all streams
-        return Promise
-          .fromCallback(next => {
-            pump(streamedRequest({ uri: fileURI }), fs.createWriteStream(filePath), next);
-          })
-          .return(filePath);
+        // FIX
+        // // properly handles errors and closes all streams
+        // return Promise
+        //   .fromCallback((next) {
+        //     pump(streamedRequest({ uri: fileURI }), fs.createWriteStream(filePath), next);
+        //   }).return(filePath);
       });
   }
   //
@@ -1038,12 +1045,12 @@ class TelegramBot extends Events {
   //  * @return {Number} id                    The ID of the inserted reply listener.
   //  */
   onReplyToMessage(chatId, messageId, callback) {
-    const id = ++this._replyListenerId;
-    this._replyListeners.push({
-      id,
-      chatId,
-      messageId,
-      callback
+    var id = ++this._replyListenerId;
+    this._replyListeners.add({
+      'id': id,
+      'chatId': chatId,
+      'messageId': messageId,
+      'callback': callback
     });
     return id;
   }
@@ -1056,13 +1063,15 @@ class TelegramBot extends Events {
   //  *   properties. If not found, returns "null".
   //  */
   removeReplyListener(replyListenerId) {
-    const index = this._replyListeners.findIndex((replyListener) => {
-      return replyListener.id === replyListenerId;
-    });
-    if (index === -1) {
-      return null;
-    }
-    return this._replyListeners.splice(index, 1)[0];
+    print('FIX: find a replacement for findIndex() method');
+    // var index = this._replyListeners.findIndex((replyListener) {
+    //   return replyListener['id'] == replyListenerId;
+    // });
+    // if (!index) {
+    //   return null;
+    // }
+    print('FIX: find a replacement for splice() method');
+    // return this._replyListeners.splice(index, 1)[0];
   }
   //
   // /**
@@ -1074,10 +1083,10 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#getchat
   //  */
   getChat(chatId) {
-    const form = {
-      chat_id: chatId
+    Map options = {
+      'chat_id': chatId
     };
-    return this._request('getChat', { form });
+    return this._request('getChat', options: options);
   }
   //
   // /**
@@ -1087,10 +1096,10 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#getchatadministrators
   //  */
   getChatAdministrators(chatId) {
-    const form = {
-      chat_id: chatId
+    Map options = {
+      'chat_id': chatId
     };
-    return this._request('getChatAdministrators', { form });
+    return this._request('getChatAdministrators', options: options);
   }
   //
   // /**
@@ -1100,10 +1109,10 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#getchatmemberscount
   //  */
   getChatMembersCount(chatId) {
-    const form = {
-      chat_id: chatId
+    Map options = {
+      'chat_id': chatId
     };
-    return this._request('getChatMembersCount', { form });
+    return this._request('getChatMembersCount', options: options);
   }
   //
   // /**
@@ -1114,11 +1123,11 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#getchatmember
   //  */
   getChatMember(chatId, userId) {
-    const form = {
-      chat_id: chatId,
-      user_id: userId
+    Map options = {
+      'chat_id': chatId,
+      'user_id': userId
     };
-    return this._request('getChatMember', { form });
+    return this._request('getChatMember', options: options);
   }
   //
   // /**
@@ -1128,10 +1137,10 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#leavechat
   //  */
   leaveChat(chatId) {
-    const form = {
-      chat_id: chatId
+    Map options = {
+      'chat_id': chatId
     };
-    return this._request('leaveChat', { form });
+    return this._request('leaveChat', options: options);
   }
   //
   // /**
@@ -1142,11 +1151,11 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#sendgame
   //  */
-  sendGame(chatId, gameShortName, {form}) {
-    if(form == null) form = {};
-    form.chat_id = chatId;
-    form.game_short_name = gameShortName;
-    return this._request('sendGame', { form });
+  sendGame(chatId, gameShortName, {options}) {
+    if(options == null) options = {};
+    options['chat_id'] = chatId;
+    options['game_short_name'] = gameShortName;
+    return this._request('sendGame', options: options);
   }
   //
   // /**
@@ -1157,11 +1166,11 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#setgamescore
   //  */
-  setGameScore(userId, score, {form}) {
-    if(form == null) form = {};
-    form.user_id = userId;
-    form.score = score;
-    return this._request('setGameScore', { form });
+  setGameScore(userId, score, {options}) {
+    if(options == null) options = {};
+    options['user_id'] = userId;
+    options['score'] = score;
+    return this._request('setGameScore', options: options);
   }
   //
   // /**
@@ -1171,9 +1180,9 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#getgamehighscores
   //  */
-  getGameHighScores(userId, {form}) {
-    if(form == null) form = {};
-    form.user_id = userId;
-    return this._request('getGameHighScores', { form });
+  getGameHighScores(userId, {options}) {
+    if(options == null) options = {};
+    options['user_id'] = userId;
+    return this._request('getGameHighScores', options: options);
   }
 }

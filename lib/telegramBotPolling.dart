@@ -1,22 +1,28 @@
 import 'dart:async';
 import 'dart:core';
 import 'dart:io';
+import './telegram.dart';
 
 final int ANOTHER_WEB_HOOK_USED = 409;
 
 class TelegramBotPolling {
   TelegramBot bot;
-  int interval;
-  int offset;
-  int timeout;
+  Map options;
   int limit;
   DateTime _lastUpdate;
   dynamic _lastRequest;
-  Boolean _abort;
-  Future _pollingTimeout; // TO DO: find a way to handle this Future
+  bool _abort;
+  Timer _pollingTimeout; // TO DO: find a way to handle this Future
   
-  TelegramBotPolling({this.bot, this.interval, this.offset, this.timeout}){
-    this._lastUpdate = 0;
+  TelegramBotPolling(this.bot){
+    
+    this.options = (bot.options['polling'] is bool) ? {} : bot.options['polling'];
+    this.options['interval'] = (this.options['interval'] is int) ? this.options['interval'] : 300;
+    this.options['params'] = (this.options['params'] is Map) ? this.options['params'] : {};
+    this.options['params'].offset = (this.options['params']['offset'] is int) ? this.options['params']['offset'] : 0;
+    this.options['params'].timeout = (this.options['params']['timeout'] is int) ? this.options['params']['timeout'] : 10;
+    
+    this._lastUpdate = null;
     this._lastRequest = null;
     this._abort = false;
     this._pollingTimeout = null;
@@ -24,13 +30,14 @@ class TelegramBotPolling {
   
   Future start({Map options}) async {
     print('It needs to be implemented: started');
-    if (this._lastRequest) {
+    if (this._lastRequest != null) {
       if (!options['restart']) {
-        return Promise.resolve();
+        print('FIX: find a replacement for Promise object');
+        // return Promise.resolve();
       }
-      return this.stop({
-        cancel: true,
-        reason: 'Polling restart',
+      return this.stop(options: {
+        'cancel': true,
+        'reason': 'Polling restart',
       }).then((_) {
         return this._polling();
       });
@@ -45,21 +52,27 @@ class TelegramBotPolling {
    * @param  {String} [options['reason']] Reason for stopping polling
    * @return {Promise}
    */
-  Future stop({options}) {
+  Future stop({options}) async {
     if(options == null) options = new Map();
-    if (!this._lastRequest) {
-      return Promise.resolve();
+    if (this._lastRequest != null) {
+      print('FIX: find a replacement for Promise object');
+      // return Promise.resolve();
+      return new Future(() => print('No last request'));
     }
     var lastRequest = this._lastRequest;
+    print(lastRequest);
     this._lastRequest = null;
-    clearTimeout(this._pollingTimeout);
-    if (options['cancel']) {
-      const reason = options['reason'] || 'Polling stop';
+    // clearTimeout(this._pollingTimeout);
+    this._pollingTimeout.cancel();
+    if (options['cancel'] != null) {
+      var reason = options['reason'] != null ? options['reason'] : 'Polling stop';
       lastRequest.cancel(reason);
-      return Promise.resolve();
+      print('FIX: find a replacement for Promise object');
+      // return Promise.resolve();
+      return new Future(() => print('Cancelled'));
     }
     this._abort = true;
-    return lastRequest.whenComplete(() => {
+    return lastRequest.whenComplete(() {
       this._abort = false;
     });
   }
@@ -68,7 +81,7 @@ class TelegramBotPolling {
    * Return `true` if is polling. Otherwise, `false`.
    */
   isPolling() {
-    return !!this._lastRequest;
+    return this._lastRequest != null;
   }
 
   /**
@@ -76,14 +89,14 @@ class TelegramBotPolling {
    * @return {Promise} promise of the current request
    * @private
    */
-  _polling() {
-    this._lastRequest = this._getUpdates()
+  _polling() async {
+    this._lastRequest = await this._getUpdates()
       .then((updates) {
         if(updates != null){
           // print('polling data ${updates}');
           this._lastUpdate = new DateTime.now();
           updates.forEach((update) {
-            this.offset = update['update_id'] + 1;
+            this.options['params']['offset'] = update['update_id'] + 1;
             // print('updated offset: ${this.offset}');
             this.bot.processUpdate(update);
           });
@@ -91,13 +104,7 @@ class TelegramBotPolling {
         return null;
       })
       .catchError((err) {
-        print(err);
-        // print("polling error: ${err['message']}");
-        // if (this.bot.listeners('polling_error').length) {
-        //   this.bot.emit('polling_error', err);
-        // } else {
-        //   console.error(err);
-        // }
+        print("polling error: ${err}");
         return null;
       })
       .whenComplete(() {
@@ -106,7 +113,8 @@ class TelegramBotPolling {
         } else {
           // print('setTimeout for ${this.interval} miliseconds');
           // this._pollingTimeout = setTimeout(() => this._polling(), this.interval);
-          this._pollingTimeout = new Future.delayed(const Duration(milliseconds: 3000), () => this._polling());
+          // this._pollingTimeout = new Timer(const Duration(milliseconds: 3000), () => this._polling());
+          this._pollingTimeout = new Timer(const Duration(milliseconds: 3000), () => print('executando de novo'));
         }
       });
     return this._lastRequest;
@@ -120,14 +128,14 @@ class TelegramBotPolling {
    */
   _unsetWebHook() {
     print('unsetting webhook');
-    return this.bot._request('setWebHook');
+    return this.bot.unsetWebHook();
   }
 
   /**
    * Retrieve updates
    */
   _getUpdates() {
-    return this.bot.getUpdates(timeout: this.timeout, limit: this.limit, offset: this.offset)
+    return this.bot.getUpdates(this.options['params'])
       .catchError((err) {
         // print("Erro no _getUpdates() => ${err}");
         // exit(0);

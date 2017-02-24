@@ -3,13 +3,8 @@ class TelegramBotOptions {
   String webHook;
   String baseApiUrl;
   String filePath;
-  Boolean restart;
+  bool restart;
+  bool onlyFirstMatch;
   
-  TelegramBotOptions({Map polling, String webHook, String baseApiUrl, String filePath, Boolean restart}){
-    this.polling = polling;
-    this.webHook = webHook;
-    this.baseApiUrl = baseApiUrl;
-    this.filePath = filePath;
-    this.restart = restart;
-  }
+  TelegramBotOptions({this.polling, this.webHook, this.baseApiUrl, this.filePath, this.restart, this.onlyFirstMatch});
 }

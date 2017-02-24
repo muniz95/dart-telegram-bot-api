@@ -1,3 +1,5 @@
+import './telegram.dart';
+
 class TelegramBotWebHook {
   TelegramBot bot;
   
