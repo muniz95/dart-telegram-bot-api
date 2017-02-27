@@ -2,6 +2,7 @@ import 'package:events/events.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
+import 'dart:io';
 import './errors.dart';
 import './telegramBotWebHook.dart';
 import './telegramBotPolling.dart';
@@ -97,8 +98,8 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#sendmessage
   //  */
   void _fixReplyMarkup(obj) {
-    var replyMarkup = obj.reply_markup;
-    if (replyMarkup && !(replyMarkup is String)) {
+    var replyMarkup = obj['reply_markup'];
+    if (replyMarkup != null) {
       print('FIX: find a replacement for stringify() method');
       // obj.reply_markup = JSON.stringify(replyMarkup);
     }
@@ -112,6 +113,7 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  */
   _request(_path, {options}) async {
+    print(options);
     if (this.token == null) {
       return Future.error(new FatalError('Telegram Bot Token not provided!'));
     }
@@ -483,8 +485,6 @@ class TelegramBot extends Events {
         });
       }
     }
-    
-    /* Parado por agora
     else if (editedMessage != null) {
       this.emit('edited_message', editedMessage);
       if (editedMessage['text'] != null) {
@@ -515,8 +515,6 @@ class TelegramBot extends Events {
     else if (callbackQuery != null) {
       this.emit('callback_query', callbackQuery);
     }
-    */
-    
   }
   //
   // /**
@@ -603,7 +601,7 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#sendaudio
   //  */
-  sendAudio(chatId, audio, {options}) {
+  sendAudio(chatId, audio, [options]) {
     if(options == null) options = {};
     Map opts = {
       'qs': options
