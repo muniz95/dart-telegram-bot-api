@@ -9,10 +9,7 @@ main() {
   bot.on('message', (msg) {
     bot.sendMessage(msg['chat']['id'], 'hi');
   });
-  // bot.onText(new RegExp(r"\/start"), (msg, match) {
-  //   bot.sendMessage(msg['chat']['id'], "It started!");
-  // });
-  // bot.onText(new RegExp(r"\/select"), (msg, res) {
-  //   bot.sendMessage(msg['chat']['id'], 'It selected!');
-  // });
+  bot.onText(new RegExp(r"\/start"), (msg, match) {
+    bot.sendMessage(msg['chat']['id'], "It started!");
+  });
 }

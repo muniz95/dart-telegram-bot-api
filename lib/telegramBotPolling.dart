@@ -19,8 +19,8 @@ class TelegramBotPolling {
     this.options = (bot.options['polling'] is bool) ? {} : bot.options['polling'];
     this.options['interval'] = (this.options['interval'] is int) ? this.options['interval'] : 300;
     this.options['params'] = (this.options['params'] is Map) ? this.options['params'] : {};
-    this.options['params'].offset = (this.options['params']['offset'] is int) ? this.options['params']['offset'] : 0;
-    this.options['params'].timeout = (this.options['params']['timeout'] is int) ? this.options['params']['timeout'] : 10;
+    this.options['params']['offset'] = (this.options['params']['offset'] is int) ? this.options['params']['offset'] : 0;
+    this.options['params']['timeout'] = (this.options['params']['timeout'] is int) ? this.options['params']['timeout'] : 10;
     
     this._lastUpdate = null;
     this._lastRequest = null;
@@ -29,7 +29,6 @@ class TelegramBotPolling {
   }
   
   Future start({Map options}) async {
-    print('It needs to be implemented: started');
     if (this._lastRequest != null) {
       if (!options['restart']) {
         print('FIX: find a replacement for Promise object');
@@ -89,18 +88,16 @@ class TelegramBotPolling {
    * @return {Promise} promise of the current request
    * @private
    */
-  _polling() async {
-    this._lastRequest = await this._getUpdates()
+  _polling() {
+    this._lastRequest = this._getUpdates()
       .then((updates) {
-        if(updates != null){
-          // print('polling data ${updates}');
-          this._lastUpdate = new DateTime.now();
-          updates.forEach((update) {
-            this.options['params']['offset'] = update['update_id'] + 1;
-            // print('updated offset: ${this.offset}');
-            this.bot.processUpdate(update);
-          });
-        }
+        // print('polling data ${updates}');
+        this._lastUpdate = new DateTime.now();
+        updates.forEach((update) {
+          this.options['params']['offset'] = update['update_id'] + 1;
+          // print('updated offset: ${this.offset}');
+          this.bot.processUpdate(update);
+        });
         return null;
       })
       .catchError((err) {
@@ -113,8 +110,8 @@ class TelegramBotPolling {
         } else {
           // print('setTimeout for ${this.interval} miliseconds');
           // this._pollingTimeout = setTimeout(() => this._polling(), this.interval);
-          // this._pollingTimeout = new Timer(const Duration(milliseconds: 3000), () => this._polling());
-          this._pollingTimeout = new Timer(const Duration(milliseconds: 3000), () => print('executando de novo'));
+          this._pollingTimeout = new Timer(const Duration(milliseconds: 3000), () => this._polling());
+          // this._pollingTimeout = new Timer(const Duration(milliseconds: 3000), () => print('executando de novo'));
         }
       });
     return this._lastRequest;

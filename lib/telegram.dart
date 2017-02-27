@@ -128,54 +128,33 @@ class TelegramBot extends Events {
     }
 
     String _url = this._buildURL(_path);
-    options['forever'] = true;
     var body = {};
+    body['offset'] = options['offset'].toString();
+    body['polling'] = options['polling'].toString();
 
     if(options['chat_id'] != null){
       body['chat_id'] = options['chat_id'].toString();
       body['text'] = options['text'];
-      
-      return http.post(_url, body: body)
-        .then((resp) {
-          var data;
-          try {
-            data = JSON.decode(resp.body);
-          }
-          catch (err) {
-            throw new ParseError("Error parsing Telegram response: ${resp.body}", resp);
-          }
-  
-          if (data["ok"]) {
-            return data['result'];
-          }
-  
-          throw new TelegramError("${data['error_code']} ${data['description']}", resp);
-        })
-        .catchError((err){
-          print('dando merda no post da mensagem ${err}');
-        });
     }
-    else{
-      return http.post(_url)
-        .then((resp) {
-          var data;
-          try {
-            data = JSON.decode(resp.body);
-          }
-          catch (err) {
-            throw new ParseError("Error parsing Telegram response: ${resp.body}", resp);
-          }
-  
-          if (data["ok"]) {
-            return data['result'];
-          }
-  
-          throw new TelegramError("${data['error_code']} ${data['description']}", resp);
-        })
-        .catchError((err){
-          print('deu m.... ${err}');
-        });
-    }
+    return http.post(_url, body: body)
+      .then((resp) {
+        var data;
+        try {
+          data = JSON.decode(resp.body);
+        }
+        catch (err) {
+          throw new ParseError("Error parsing Telegram response: ${resp.body}", resp);
+        }
+
+        if (data["ok"]) {
+          return data['result'];
+        }
+
+        throw new TelegramError("${data['error_code']} ${data['description']}", resp);
+      })
+      .catchError((err){
+        print('deu m.... ${err}');
+      });
     /* Alterar para algo equivalente
     return request(options)
       .then((resp) {
@@ -472,7 +451,7 @@ class TelegramBot extends Events {
     if (message != null) {
       this.emit('message', message);
       var processMessageType = (messageType) {
-        if (message['messageType'] != null) {
+        if (message[messageType] != null) {
           this.emit(messageType, message);
         }
       };

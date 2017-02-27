@@ -9,3 +9,4 @@ dependencies:
   dotenv: any
   http: any
   events: any
+  redstone: any
