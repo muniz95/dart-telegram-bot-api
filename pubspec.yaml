@@ -5,8 +5,7 @@ environment:
 dependencies:
   html: any
   json: any
-  eventable: any
   dotenv: any
   http: any
   events: any
-  redstone: any
+  path: any

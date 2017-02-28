@@ -2,11 +2,10 @@ import 'package:events/events.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
-import 'dart:io';
 import './errors.dart';
 import './telegramBotWebHook.dart';
 import './telegramBotPolling.dart';
-import './telegramBotOptions.dart';
+// import './telegramBotOptions.dart';
 // const debug = require('debug')('node-telegram-bot-api');
 // const fileType = require('file-type');
 // const request = require('request-promise');
@@ -56,14 +55,14 @@ class TelegramBot extends Events {
       // this.options.baseApiUrl = options.baseApiUrl != '' ? options.baseApiUrl : "https://api.telegram.org";
       ////////////////////////////////////////////////////////////////////////////////////////////////////////
       this.options['filePath'] = (options['filePath'] == null) ? true : options['filePath'];
-  
+
       if (options['polling'] != null) {
         var autoStart = options['polling']['autoStart'];
         if (autoStart != null) {
           this.startPolling();
         }
       }
-  
+
       if (options['webHook'] != null) {
         var autoOpen = options['webHook']['autoOpen'];
         if (autoOpen != null) {
@@ -71,7 +70,7 @@ class TelegramBot extends Events {
         }
       }
     }
-    
+
     this._textRegexpCallbacks = [];
     this._replyListenerId = 0;
     this._replyListeners = [];
@@ -113,9 +112,8 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  */
   _request(_path, {options}) async {
-    print(options);
     if (this.token == null) {
-      return Future.error(new FatalError('Telegram Bot Token not provided!'));
+      return new Future.error(new FatalError('Telegram Bot Token not provided!'));
     }
 
     // if (this.options['request'] != null) {
@@ -157,30 +155,8 @@ class TelegramBot extends Events {
       .catchError((err){
         print('deu m.... ${err}');
       });
-    /* Alterar para algo equivalente
-    return request(options)
-      .then((resp) {
-        var data;
-        try {
-          data = resp.body = JSON.parse(resp.body);
-        } catch (err) {
-          throw new ParseError("Error parsing Telegram response: ${resp.body}", resp);
-        }
-
-        if (data.ok) {
-          return data.result;
-        }
-
-        throw new TelegramError("${data.error_code} ${data.description}", resp);
-      })
-      .catchError((error) {
-        // TODO: why can't we do "error instanceof errors.BaseError"?
-        if (error.response) throw error;
-        throw new FatalError(error);
-      });
-    */
   }
-  
+
   //
   // /**
   //  * Format data to be uploaded; handles file paths, streams and buffers
@@ -198,7 +174,7 @@ class TelegramBot extends Events {
     var fileName;
     var fileId;
     // FIX: find a proper replacement for the stream.Stream type
-    // 
+    //
     // if (data is stream.Stream) {
     //   // Will be 'null' if could not be parsed. Default to 'filename'.
     //   // For example, 'data.path' === '/?id=123' from 'request("https://example.com/?id=123")'
@@ -211,10 +187,10 @@ class TelegramBot extends Events {
     //       'contentType': mime.lookup(fileName)
     //     }
     //   };
-    // } 
-    
+    // }
+
     // FIX: find a replacement for fileType() method
-    // 
+    //
     // else if (Buffer.isBuffer(data)) {
     //   var filetype = fileType(data);
     //   if (filetype == null) {
@@ -237,7 +213,7 @@ class TelegramBot extends Events {
     //   fileId = data;
     // }
     // // FIX: find a replacement for the fs object
-    // // 
+    // //
     // // else if (fs.existsSync(data)) {
     // //   fileName = path.basename(data);
     // //   formData = {};
@@ -374,24 +350,24 @@ class TelegramBot extends Events {
       * consistency of the method signatures throughout the library */
     if(options == null) options = {};
     var cert = options.certificate;
-  
+
     Map opts = {
       'qs': options
     };
     opts['qs']['url'] = url;
-  
+
     if (cert != null) {
       try {
         var sendData = this._formatSendData('certificate', cert);
         opts['formData'] = sendData[0];
         opts['qs']['certificate'] = sendData[1];
-      } 
+      }
       catch (ex) {
         print('FIX: find a replacement for Promise object');
         // return Promise.reject(ex);
       }
     }
-  
+
     return this._request('setWebHook', options: opts);
   }
   //
@@ -404,7 +380,7 @@ class TelegramBot extends Events {
   deleteWebHook() {
     return this._request('deleteWebhook');
   }
-  
+
   unsetWebHook() {
     return this._request('setWebHook');
   }
@@ -449,7 +425,7 @@ class TelegramBot extends Events {
     var inlineQuery = update['inline_query'];
     var chosenInlineResult = update['chosen_inline_result'];
     var callbackQuery = update['callback_query'];
-    
+
     if (message != null) {
       this.emit('message', message);
       var processMessageType = (messageType) {
@@ -493,7 +469,7 @@ class TelegramBot extends Events {
       if (editedMessage['caption'] != null) {
         this.emit('edited_message_caption', editedMessage);
       }
-    } 
+    }
     else if (channelPost != null) {
       this.emit('channel_post', channelPost);
     }
@@ -993,7 +969,7 @@ class TelegramBot extends Events {
         String fileName = fileURI.slice(fileURI.lastIndexOf('/') + 1);
         // TODO: Ensure fileName doesn't contains slashes
         String filePath = "${downloadDir}/${fileName}";
-  
+
         // FIX
         // // properly handles errors and closes all streams
         // return Promise

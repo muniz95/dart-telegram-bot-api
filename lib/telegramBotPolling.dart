@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:core';
-import 'dart:io';
+// import 'dart:io';
 import './telegram.dart';
 
 final int ANOTHER_WEB_HOOK_USED = 409;
@@ -13,21 +13,21 @@ class TelegramBotPolling {
   dynamic _lastRequest;
   bool _abort;
   Timer _pollingTimeout; // TO DO: find a way to handle this Future
-  
+
   TelegramBotPolling(this.bot){
-    
+
     this.options = (bot.options['polling'] is bool) ? {} : bot.options['polling'];
     this.options['interval'] = (this.options['interval'] is int) ? this.options['interval'] : 300;
     this.options['params'] = (this.options['params'] is Map) ? this.options['params'] : {};
     this.options['params']['offset'] = (this.options['params']['offset'] is int) ? this.options['params']['offset'] : 0;
     this.options['params']['timeout'] = (this.options['params']['timeout'] is int) ? this.options['params']['timeout'] : 10;
-    
+
     this._lastUpdate = null;
     this._lastRequest = null;
     this._abort = false;
     this._pollingTimeout = null;
   }
-  
+
   Future start({Map options}) async {
     if (this._lastRequest != null) {
       if (!options['restart']) {
@@ -37,13 +37,14 @@ class TelegramBotPolling {
       return this.stop(options: {
         'cancel': true,
         'reason': 'Polling restart',
-      }).then((_) {
+      })
+      .then((_) {
         return this._polling();
       });
     }
     return this._polling();
   }
-  
+
   /**
    * Stop polling
    * @param  {Object} [options]
@@ -59,7 +60,6 @@ class TelegramBotPolling {
       return new Future(() => print('No last request'));
     }
     var lastRequest = this._lastRequest;
-    print(lastRequest);
     this._lastRequest = null;
     // clearTimeout(this._pollingTimeout);
     this._pollingTimeout.cancel();
