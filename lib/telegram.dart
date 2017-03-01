@@ -174,7 +174,7 @@ class TelegramBot extends Events {
     var formData;
     var fileName;
     var fileId;
-    // // This is a remote path
+    // // This is a remote file
     // // FIX: find a proper replacement for the stream.Stream type
     // //
     if (data is http.Response) {
