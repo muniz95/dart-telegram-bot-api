@@ -170,43 +170,47 @@ class TelegramBot extends Events {
   //  * @see https://npmjs.com/package/file-type
   //  * @private
   //  */
-  _formatSendData(type, data) {
+  _formatSendData(type, data) async {
     var formData;
     var fileName;
     var fileId;
     // // This is a remote path
     // // FIX: find a proper replacement for the stream.Stream type
     // //
-    // if (data is stream.Stream) {
-    //   // Will be 'null' if could not be parsed. Default to 'filename'.
-    //   // For example, 'data.path' === '/?id=123' from 'request("https://example.com/?id=123")'
-    //   fileName = URL.parse(path.basename(data.path.toString())).pathname || 'filename';
-    //   formData = {};
-    //   formData['type'] = {
-    //     'value': data,
-    //     'options': {
-    //       'filename': qs.unescape(fileName),
-    //       'contentType': mime.lookup(fileName)
-    //     }
-    //   };
-    // }
+    if (data is http.Response) {
+      print('É um arquivo baixado');
+      exit(0);
+      // // Will be 'null' if could not be parsed. Default to 'filename'.
+      // // For example, 'data.path' === '/?id=123' from 'request("https://example.com/?id=123")'
+      // fileName = URL.parse(path.basename(data.path.toString())).pathname || 'filename';
+      // formData = {};
+      // formData['type'] = {
+      //   'value': data,
+      //   'options': {
+      //     'filename': qs.unescape(fileName),
+      //     'contentType': mime.lookup(fileName)
+      //   }
+      // };
+    }
 
     // // This is a Stream file
     // FIX: find a replacement for fileType() method
     //
-    if (data.runtimeType.toString() == "_File") {
-      var filetype = {'ext': 'mp3', 'mime': 'audio/mpeg'};
-      if (filetype == null) {
-        throw new FatalError('Unsupported Buffer file type');
-      }
-      formData = {};
-      formData['type'] = {
-        'value': data,
-        'options': {
-          'filename': "data.${filetype['ext']}",
-          'contentType': filetype['mime']
-        }
-      };
+    if (data is Stream) {
+      print('É um stream de arquivo');
+      exit(0);
+      // var filetype = {'ext': 'mp3', 'mime': 'audio/mpeg'};
+      // if (filetype == null) {
+      //   throw new FatalError('Unsupported Buffer file type');
+      // }
+      // formData = {};
+      // formData[type] = {
+      //   'value': data,
+      //   'options': {
+      //     'filename': "data.${filetype['ext']}",
+      //     'contentType': filetype['mime']
+      //   }
+      // };
     }
     else if (this.options['filePath'] == null) {
       /**
@@ -215,19 +219,23 @@ class TelegramBot extends Events {
         */
       fileId = data;
     }
+    // // This is the reference for the file path
     // // FIX: find a replacement for the fs object
     // //
     // else if (fs.existsSync(data)) {
-    //   fileName = path.basename(data);
-    //   formData = {};
-    //   formData[type] = {
-    //     value: fs.createReadStream(data),
-    //     options: {
-    //       filename: fileName,
-    //       contentType: mime.lookup(fileName)
-    //     }
-    //   };
-    // }
+    else if (await new File(data).exists()) {
+      print('É o caminho de um arquivo');
+      exit(0);
+      // fileName = path.basename(data);
+      // formData = {};
+      // formData[type] = {
+      //   value: fs.createReadStream(data),
+      //   options: {
+      //     filename: fileName,
+      //     contentType: mime.lookup(fileName)
+      //   }
+      // };
+    }
     else {
       fileId = data;
     }
@@ -588,7 +596,7 @@ class TelegramBot extends Events {
     opts['qs']['chat_id'] = chatId;
     try {
       var sendData = this._formatSendData('audio', audio);
-      print(sendData[0]);
+      print(sendData);
       opts['formData'] = sendData[0];
       opts['qs']['audio'] = sendData[1];
     }
