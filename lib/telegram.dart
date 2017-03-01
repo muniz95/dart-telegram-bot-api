@@ -174,6 +174,7 @@ class TelegramBot extends Events {
     var formData;
     var fileName;
     var fileId;
+    // // This is a remote path
     // // FIX: find a proper replacement for the stream.Stream type
     // //
     // if (data is stream.Stream) {
@@ -190,6 +191,7 @@ class TelegramBot extends Events {
     //   };
     // }
 
+    // // This is a Stream file
     // FIX: find a replacement for fileType() method
     //
     if (data.runtimeType.toString() == "_File") {
