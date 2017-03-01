@@ -2,6 +2,7 @@ import 'package:events/events.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
+import 'dart:io';
 import './errors.dart';
 import './telegramBotWebHook.dart';
 import './telegramBotPolling.dart';
@@ -173,27 +174,26 @@ class TelegramBot extends Events {
     var formData;
     var fileName;
     var fileId;
-    print(data.runtimeType);
-    // FIX: find a proper replacement for the stream.Stream type
-    //
-    if (data is stream.Stream) {
-      // Will be 'null' if could not be parsed. Default to 'filename'.
-      // For example, 'data.path' === '/?id=123' from 'request("https://example.com/?id=123")'
-      fileName = URL.parse(path.basename(data.path.toString())).pathname || 'filename';
-      formData = {};
-      formData['type'] = {
-        'value': data,
-        'options': {
-          'filename': qs.unescape(fileName),
-          'contentType': mime.lookup(fileName)
-        }
-      };
-    }
+    // // FIX: find a proper replacement for the stream.Stream type
+    // //
+    // if (data is stream.Stream) {
+    //   // Will be 'null' if could not be parsed. Default to 'filename'.
+    //   // For example, 'data.path' === '/?id=123' from 'request("https://example.com/?id=123")'
+    //   fileName = URL.parse(path.basename(data.path.toString())).pathname || 'filename';
+    //   formData = {};
+    //   formData['type'] = {
+    //     'value': data,
+    //     'options': {
+    //       'filename': qs.unescape(fileName),
+    //       'contentType': mime.lookup(fileName)
+    //     }
+    //   };
+    // }
 
     // FIX: find a replacement for fileType() method
     //
-    else if (data.runtimeType == '_File') {
-      var filetype = fileType(data);
+    if (data.runtimeType.toString() == "_File") {
+      var filetype = {'ext': 'mp3', 'mime': 'audio/mpeg'};
       if (filetype == null) {
         throw new FatalError('Unsupported Buffer file type');
       }
@@ -201,12 +201,12 @@ class TelegramBot extends Events {
       formData['type'] = {
         'value': data,
         'options': {
-          'filename': "data.${filetype.ext}",
+          'filename': "data.${filetype['ext']}",
           'contentType': filetype['mime']
         }
       };
     }
-    else if (this.options.filePath == null) {
+    else if (this.options['filePath'] == null) {
       /**
         * When the constructor option 'filePath' is set to
         * 'false', we do not support passing file-paths.
@@ -215,17 +215,17 @@ class TelegramBot extends Events {
     }
     // // FIX: find a replacement for the fs object
     // //
-    else if (fs.existsSync(data)) {
-      fileName = path.basename(data);
-      formData = {};
-      formData[type] = {
-        value: fs.createReadStream(data),
-        options: {
-          filename: fileName,
-          contentType: mime.lookup(fileName)
-        }
-      };
-    }
+    // else if (fs.existsSync(data)) {
+    //   fileName = path.basename(data);
+    //   formData = {};
+    //   formData[type] = {
+    //     value: fs.createReadStream(data),
+    //     options: {
+    //       filename: fileName,
+    //       contentType: mime.lookup(fileName)
+    //     }
+    //   };
+    // }
     else {
       fileId = data;
     }
@@ -242,7 +242,6 @@ class TelegramBot extends Events {
   startPolling({Map options}) async {
     if(options == null) options = new Map();
     if (this.hasOpenWebHook()) {
-      print('245');
       print('FIX: find a replacement for Promise object');
       // return Promise.reject(new FatalError('Polling and WebHook are mutually exclusive'));
     }
@@ -271,7 +270,6 @@ class TelegramBot extends Events {
   //  */
   stopPolling() {
     if (!this._polling) {
-      print('274');
       print('FIX: find a replacement for Promise object');
       // return Promise.resolve();
     }
@@ -294,7 +292,6 @@ class TelegramBot extends Events {
   //  */
   openWebHook() {
     if (this.isPolling()) {
-      print('297');
       print('FIX: find a replacement for Promise object');
       // return Promise.reject(new FatalError('WebHook and Polling are mutually exclusive'));
     }
@@ -311,7 +308,6 @@ class TelegramBot extends Events {
   //  */
   closeWebHook() {
     if (!this._webHook) {
-      print('314');
       print('FIX: find a replacement for Promise object');
       // return Promise.resolve();
     }
@@ -368,7 +364,6 @@ class TelegramBot extends Events {
         opts['qs']['certificate'] = sendData[1];
       }
       catch (ex) {
-        print('371');
         print('FIX: find a replacement for Promise object');
         // return Promise.reject(ex);
       }
@@ -568,7 +563,6 @@ class TelegramBot extends Events {
       opts['qs']['photo'] = sendData[1];
     }
     catch (ex) {
-      print('571');
       print('FIX: find a replacement for Promise object');
       // return Promise.reject(ex);
     }
@@ -592,12 +586,13 @@ class TelegramBot extends Events {
     opts['qs']['chat_id'] = chatId;
     try {
       var sendData = this._formatSendData('audio', audio);
+      print(sendData[0]);
       opts['formData'] = sendData[0];
       opts['qs']['audio'] = sendData[1];
     }
     catch (ex) {
-      print('FIX: find a replacement for Promise object');
-      // return Promise.reject(ex);
+      print(ex);
+      // return new Future.error(ex);
     }
     return this._request('sendAudio', options: opts);
   }
@@ -624,7 +619,6 @@ class TelegramBot extends Events {
       opts['formData'] = sendData[0];
       opts['qs']['document'] = sendData[1];
     } catch (ex) {
-      print('628');
       print('FIX: find a replacement for Promise object');
       // return Promise.reject(ex);
     }
@@ -655,7 +649,6 @@ class TelegramBot extends Events {
       opts['formData'] = sendData[0];
       opts['qs']['sticker'] = sendData[1];
     } catch (ex) {
-      print('659');
       print('FIX: find a replacement for Promise object');
       // return Promise.reject(ex);
     }
@@ -683,7 +676,6 @@ class TelegramBot extends Events {
       opts['qs']['video'] = sendData[1];
     }
     catch (ex) {
-      print('687');
       print('FIX: find a replacement for Promise object');
       // return Promise.reject(ex);
     }
@@ -710,7 +702,6 @@ class TelegramBot extends Events {
       opts['formData'] = sendData[0];
       opts['qs']['voice'] = sendData[1];
     } catch (ex) {
-      print('714');
       print('FIX: find a replacement for Promise object');
       // return Promise.reject(ex);
     }

@@ -10,7 +10,7 @@ main() {
   TelegramBot bot = new TelegramBot(env['TG_TOKEN'], options: options);
   bot.onText(new RegExp("\/audio"), (msg, match) {
     // From file path
-    File audio = new File("${dirname(Platform.script.toString())}/audio.mp3");
+    Stream audio = new File("${dirname(Platform.script.toString())}/audio.mp3").openRead();
     bot.sendAudio(msg['chat']['id'], audio);
   });
 }
