@@ -170,7 +170,7 @@ class TelegramBot extends Events {
   //  * @see https://npmjs.com/package/file-type
   //  * @private
   //  */
-  _formatSendData(type, data) async {
+  _formatSendData(type, data) {
     var formData;
     var fileName;
     var fileId;
@@ -223,7 +223,7 @@ class TelegramBot extends Events {
     // // FIX: find a replacement for the fs object
     // //
     // else if (fs.existsSync(data)) {
-    else if (await new File(data).exists()) {
+    else if (new File(data).exists()) {
       print('É o caminho de um arquivo');
       exit(0);
       // fileName = path.basename(data);
