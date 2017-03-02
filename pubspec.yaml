@@ -6,6 +6,7 @@ dependencies:
   html: any
   json: any
   dotenv: any
-  http: any
   events: any
   path: any
+  mime: any
+  simple_requests: any

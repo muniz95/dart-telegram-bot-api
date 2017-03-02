@@ -27,6 +27,10 @@ main() {
     // From file path
     String url = "https://upload.wikimedia.org/wikipedia/commons/c/c8/Example.ogg";
     http.get(url)
-      .then((audio) => bot.sendAudio(msg['chat']['id'], audio));
+      .then((audio) => bot.sendAudio(msg['chat']['id'], [url, audio]));
+  });
+  
+  bot.onText(new RegExp(r"\/start"), (msg, match) {
+    bot.sendMessage(msg['chat']['id'], "It started!");
   });
 }

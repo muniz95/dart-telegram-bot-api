@@ -1,11 +1,12 @@
+import 'package:mime/mime.dart';
 import 'package:events/events.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
 import './errors.dart';
 import './telegramBotWebHook.dart';
 import './telegramBotPolling.dart';
+import 'package:simple_requests/simple_requests.dart';
 // import './telegramBotOptions.dart';
 // const debug = require('debug')('node-telegram-bot-api');
 // const fileType = require('file-type');
@@ -13,7 +14,6 @@ import './telegramBotPolling.dart';
 // const streamedRequest = require('request');
 // const qs = require('querystring');
 // const stream = require('stream');
-// const mime = require('mime');
 // const path = require('path');
 // const URL = require('url');
 // const fs = require('fs');
@@ -136,22 +136,28 @@ class TelegramBot extends Events {
     options['polling'] = options['polling'].toString();
     options['timeout'] = options['timeout'].toString();
     options['chat_id'] = options['chat_id'].toString();
-
-    return http.post(_url, body: options)
-      .then((resp) {
+    
+    print(options);
+    // print("${options}\n\n\n\n\n");
+    // options = JSON.encode(options);
+    // print("${options}\n\n\n\n\n");
+    
+    var uri = Uri.parse(_url);
+    return request(uri, payload: options)
+      .then((res) {
         var data;
         try {
-          data = JSON.decode(resp.body);
+          data = JSON.decode(res.content);
         }
         catch (err) {
-          throw new ParseError("Error parsing Telegram response: ${resp.body}", resp);
+          throw new ParseError("Error parsing Telegram response: ${res.content}", res);
         }
 
         if (data["ok"]) {
           return data['result'];
         }
 
-        throw new TelegramError("${data['error_code']} ${data['description']}", resp);
+        throw new TelegramError("${data['error_code']} ${data['description']}", res);
       })
       .catchError((err){
         print('deu m.... ${err}');
@@ -177,19 +183,17 @@ class TelegramBot extends Events {
     // // This is a remote file
     // // FIX: find a proper replacement for the stream.Stream type
     // //
-    if (data is http.Response) {
-      print(data.body);
-      exit(0);
+    if (data is List) {
       // // Will be 'null' if could not be parsed. Default to 'filename'.
       // // For example, 'data.path' === '/?id=123' from 'request("https://example.com/?id=123")'
-      // fileName = URL.parse(path.basename(data.path.toString())).pathname || 'filename';
-      fileName = 'filename';
+      fileName = data[0].split('/').last;
+      Stream value = data[1].body;
       formData = {};
-      formData['type'] = {
-        'value': data,
+      formData[type] = {
+        'value': 'v',
         'options': {
           'filename': fileName,
-          'contentType': mime.lookup(fileName)
+          'contentType': lookupMimeType(fileName)
         }
       };
     }
@@ -592,7 +596,7 @@ class TelegramBot extends Events {
     Map opts = {
       'qs': options
     };
-    opts['qs']['chat_id'] = chatId;
+    opts['qs']['chat_id'] = chatId.toString();
     try {
       var sendData = await this._formatSendData('audio', audio);
       opts['formData'] = sendData[0];
