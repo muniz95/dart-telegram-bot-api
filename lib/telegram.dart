@@ -100,8 +100,7 @@ class TelegramBot extends Events {
   void _fixReplyMarkup(obj) {
     var replyMarkup = obj['reply_markup'];
     if (replyMarkup != null) {
-      print('FIX: find a replacement for stringify() method');
-      // obj.reply_markup = JSON.stringify(replyMarkup);
+      obj['reply_markup'] = JSON.encode(replyMarkup);
     }
   }
   //
@@ -112,14 +111,15 @@ class TelegramBot extends Events {
   //  * @private
   //  * @return {Promise}
   //  */
-  _request(_path, {options}) async {
+  _request(_path, {options}) {
     if (this.token == null) {
       return new Future.error(new FatalError('Telegram Bot Token not provided!'));
     }
 
-    // if (this.options['request'] != null) {
-    //   Object.assign(options, this.options.request);
-    // }
+    if (this.options['request'] != null) {
+      print('temos um caso aqui');
+      // Object.assign(options, this.options.request);
+    }
 
     if (options['form'] != null) {
       this._fixReplyMarkup(options['form']);
@@ -129,15 +129,15 @@ class TelegramBot extends Events {
     }
 
     String _url = this._buildURL(_path);
-    var body = {};
-    body['offset'] = options['offset'].toString();
-    body['polling'] = options['polling'].toString();
 
-    if(options['chat_id'] != null){
-      body['chat_id'] = options['chat_id'].toString();
-      body['text'] = options['text'];
-    }
-    return http.post(_url, body: body)
+    // print(options);
+
+    options['offset'] = options['offset'].toString();
+    options['polling'] = options['polling'].toString();
+    options['timeout'] = options['timeout'].toString();
+    options['chat_id'] = options['chat_id'].toString();
+
+    return http.post(_url, body: options)
       .then((resp) {
         var data;
         try {
@@ -170,7 +170,7 @@ class TelegramBot extends Events {
   //  * @see https://npmjs.com/package/file-type
   //  * @private
   //  */
-  _formatSendData(type, data) {
+  _formatSendData(type, data) async {
     var formData;
     var fileName;
     var fileId;
@@ -178,39 +178,40 @@ class TelegramBot extends Events {
     // // FIX: find a proper replacement for the stream.Stream type
     // //
     if (data is http.Response) {
-      print('É um arquivo baixado');
+      print(data.body);
       exit(0);
       // // Will be 'null' if could not be parsed. Default to 'filename'.
       // // For example, 'data.path' === '/?id=123' from 'request("https://example.com/?id=123")'
       // fileName = URL.parse(path.basename(data.path.toString())).pathname || 'filename';
-      // formData = {};
-      // formData['type'] = {
-      //   'value': data,
-      //   'options': {
-      //     'filename': qs.unescape(fileName),
-      //     'contentType': mime.lookup(fileName)
-      //   }
-      // };
+      fileName = 'filename';
+      formData = {};
+      formData['type'] = {
+        'value': data,
+        'options': {
+          'filename': fileName,
+          'contentType': mime.lookup(fileName)
+        }
+      };
     }
 
     // // This is a Stream file
     // FIX: find a replacement for fileType() method
     //
-    if (data is Stream) {
+    else if (data is Stream) {
       print('É um stream de arquivo');
-      exit(0);
-      // var filetype = {'ext': 'mp3', 'mime': 'audio/mpeg'};
-      // if (filetype == null) {
-      //   throw new FatalError('Unsupported Buffer file type');
-      // }
-      // formData = {};
-      // formData[type] = {
-      //   'value': data,
-      //   'options': {
-      //     'filename': "data.${filetype['ext']}",
-      //     'contentType': filetype['mime']
-      //   }
-      // };
+      // exit(0);
+      var filetype = {'ext': 'mp3', 'mime': 'audio/mpeg'};
+      if (filetype == null) {
+        throw new FatalError('Unsupported Buffer file type');
+      }
+      formData = {};
+      formData[type] = {
+        'value': data,
+        'options': {
+          'filename': "data.${filetype['ext']}",
+          'contentType': filetype['mime']
+        }
+      };
     }
     else if (this.options['filePath'] == null) {
       /**
@@ -223,18 +224,16 @@ class TelegramBot extends Events {
     // // FIX: find a replacement for the fs object
     // //
     // else if (fs.existsSync(data)) {
-    else if (new File(data).exists()) {
-      print('É o caminho de um arquivo');
-      exit(0);
-      // fileName = path.basename(data);
-      // formData = {};
-      // formData[type] = {
-      //   value: fs.createReadStream(data),
-      //   options: {
-      //     filename: fileName,
-      //     contentType: mime.lookup(fileName)
-      //   }
-      // };
+    else if (await new File(data).exists()) {
+      fileName = data.toString().split("/").last;
+      formData = {};
+      formData[type] = {
+        "value": new File(data).openRead(),
+        "options": {
+          "filename": fileName,
+          "contentType": "audio/mpeg"
+        }
+      };
     }
     else {
       fileId = data;
@@ -340,7 +339,7 @@ class TelegramBot extends Events {
   //  */
   getMe() async {
     String _path = 'getMe';
-    return await this._request(_path);
+    return this._request(_path);
   }
   //
   // /**
@@ -418,7 +417,7 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#getupdates
   //  */
   getUpdates(options) async {
-    return await this._request('getUpdates', options: options);
+    return this._request('getUpdates', options: options);
   }
   //
   // /**
@@ -588,20 +587,19 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#sendaudio
   //  */
-  sendAudio(chatId, audio, [options]) {
+  sendAudio(chatId, audio, [options]) async {
     if(options == null) options = {};
     Map opts = {
       'qs': options
     };
     opts['qs']['chat_id'] = chatId;
     try {
-      var sendData = this._formatSendData('audio', audio);
-      print(sendData);
+      var sendData = await this._formatSendData('audio', audio);
       opts['formData'] = sendData[0];
       opts['qs']['audio'] = sendData[1];
     }
     catch (ex) {
-      print(ex);
+      print("Exception: ${ex}");
       // return new Future.error(ex);
     }
     return this._request('sendAudio', options: opts);

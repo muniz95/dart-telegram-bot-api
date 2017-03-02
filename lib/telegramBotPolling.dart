@@ -111,7 +111,6 @@ class TelegramBotPolling {
           // print('setTimeout for ${this.interval} miliseconds');
           // this._pollingTimeout = setTimeout(() => this._polling(), this.interval);
           this._pollingTimeout = new Timer(const Duration(milliseconds: 3000), () => this._polling());
-          // this._pollingTimeout = new Timer(const Duration(milliseconds: 3000), () => print('executando de novo'));
         }
       });
     return this._lastRequest;
