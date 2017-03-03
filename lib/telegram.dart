@@ -165,12 +165,7 @@ class TelegramBot extends Events {
 
     String _url = this._buildURL(_path);
 
-    // print(options);
-
-    // options['offset'] = options['offset'].toString();
-    // options['polling'] = options['polling'].toString();
-    // options['timeout'] = options['timeout'].toString();
-    // options['chat_id'] = options['chat_id'].toString();
+    print(options);
 
     return _send("POST", Uri.parse(_url), json: options)
       .then((res) {
@@ -206,8 +201,8 @@ class TelegramBot extends Events {
     if (data is List) {
       // // Will be 'null' if could not be parsed. Default to 'filename'.
       // // For example, 'data.path' === '/?id=123' from 'request("https://example.com/?id=123")'
-      fileName = data[0].split('/').last;
-      Stream value = data[1].body;
+      fileName = data[0];
+      Stream value = data[1];
       formData = {};
       formData[type] = {
         'value': value,
@@ -361,7 +356,7 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#getme
   //  */
-  getMe() async {
+  getMe() {
     String _path = 'getMe';
     return this._request(_path);
   }
@@ -639,9 +634,12 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#sendDocument
   //  */
-  sendDocument(chatId, doc, {options, fileOpts}) {
+  sendDocument(chatId, doc, [options, fileOpts]) {
     if(options == null) options = {};
     if(fileOpts == null) fileOpts = {};
+    // options['chat_id'] = chatId;
+    // options['document'] = doc;
+    
     Map opts = {
       'qs': options
     };
