@@ -1,3 +1,4 @@
+import 'package:http/http.dart';
 import 'package:mime/mime.dart';
 import 'package:events/events.dart';
 import 'dart:convert';
@@ -103,6 +104,40 @@ class TelegramBot extends Events {
       obj['reply_markup'] = JSON.encode(replyMarkup);
     }
   }
+
+  Future<dynamic> _send(String method, url, {json}) async {
+    BaseClient bs = new IOClient();
+    var request = new Request(method, url);
+    request.headers['Content-Type'] = 'application/json';
+    request.body = JSON.encode(json);
+    var streamedResponse = await bs.send(request);
+    var response = await Response.fromStream(streamedResponse);
+
+    var bodyJson;
+    try {
+      bodyJson = JSON.decode(response.body);
+    } on FormatException {
+      var contentType = response.headers['content-type'];
+      if (contentType != null && !contentType.contains('application/json')) {
+        throw new Exception(
+            'Returned value was not JSON. Did the uri end with ".json"?');
+      }
+      rethrow;
+    }
+
+    if (response.statusCode != 200) {
+      if (bodyJson is Map) {
+        var error = bodyJson['error'];
+        if (error != null) {
+          throw error;
+        }
+      }
+      throw bodyJson;
+    }
+
+    return bodyJson;
+  }
+
   //
   // /**
   //  * Make request against the API
@@ -132,35 +167,20 @@ class TelegramBot extends Events {
 
     // print(options);
 
-    options['offset'] = options['offset'].toString();
-    options['polling'] = options['polling'].toString();
-    options['timeout'] = options['timeout'].toString();
-    options['chat_id'] = options['chat_id'].toString();
-    
-    print(options);
-    // print("${options}\n\n\n\n\n");
-    // options = JSON.encode(options);
-    // print("${options}\n\n\n\n\n");
-    
-    var uri = Uri.parse(_url);
-    return request(uri, payload: options)
+    // options['offset'] = options['offset'].toString();
+    // options['polling'] = options['polling'].toString();
+    // options['timeout'] = options['timeout'].toString();
+    // options['chat_id'] = options['chat_id'].toString();
+
+    return _send("POST", Uri.parse(_url), json: options)
       .then((res) {
-        var data;
-        try {
-          data = JSON.decode(res.content);
+        if(res["ok"]){
+          return res['result'];
         }
-        catch (err) {
-          throw new ParseError("Error parsing Telegram response: ${res.content}", res);
-        }
-
-        if (data["ok"]) {
-          return data['result'];
-        }
-
-        throw new TelegramError("${data['error_code']} ${data['description']}", res);
+        throw new TelegramError("${res['error_code']} ${res['description']}", res);
       })
-      .catchError((err){
-        print('deu m.... ${err}');
+      .catchError((ex){
+        print("Erro:::::::::${ex}");
       });
   }
 

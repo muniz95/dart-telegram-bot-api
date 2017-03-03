@@ -8,5 +8,6 @@ dependencies:
   dotenv: any
   events: any
   path: any
+  path: any
   mime: any
   simple_requests: any
