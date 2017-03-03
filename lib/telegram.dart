@@ -210,7 +210,7 @@ class TelegramBot extends Events {
       Stream value = data[1].body;
       formData = {};
       formData[type] = {
-        'value': 'v',
+        'value': value,
         'options': {
           'filename': fileName,
           'contentType': lookupMimeType(fileName)
