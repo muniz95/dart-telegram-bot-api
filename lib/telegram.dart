@@ -637,26 +637,28 @@ class TelegramBot extends Events {
   sendDocument(chatId, doc, [options, fileOpts]) {
     if(options == null) options = {};
     if(fileOpts == null) fileOpts = {};
-    // options['chat_id'] = chatId;
-    // options['document'] = doc;
+    options['chat_id'] = chatId;
+    options['document'] = doc;
+    options['caption'] = 'test';
+    options['disable_notification'] = false;
     
-    Map opts = {
-      'qs': options
-    };
-    opts['qs']['chat_id'] = chatId;
-    try {
-      var sendData = this._formatSendData('document', doc);
-      opts['formData'] = sendData[0];
-      opts['qs']['document'] = sendData[1];
-    } catch (ex) {
-      print('FIX: find a replacement for Promise object');
-      // return Promise.reject(ex);
-    }
-    print('FIX: find a replacement for Object.keys method');
-    // if (opts['formData'] && Object.keys(fileOpts).length) {
-    //   opts['formData'].document.options = fileOpts;
+    // Map opts = {
+    //   'qs': options
+    // };
+    // opts['qs']['chat_id'] = chatId;
+    // try {
+    //   var sendData = this._formatSendData('document', doc);
+    //   opts['formData'] = sendData[0];
+    //   opts['qs']['document'] = sendData[1];
+    // } catch (ex) {
+    //   print('FIX: find a replacement for Promise object');
+    //   // return Promise.reject(ex);
     // }
-    return this._request('sendDocument', options: opts);
+    // print('FIX: find a replacement for Object.keys method');
+    // // if (opts['formData'] && Object.keys(fileOpts).length) {
+    // //   opts['formData'].document.options = fileOpts;
+    // // }
+    return this._request('sendDocument', options: options);
   }
   //
   // /**
@@ -1169,5 +1171,11 @@ class TelegramBot extends Events {
     if(options == null) options = {};
     options['user_id'] = userId;
     return this._request('getGameHighScores', options: options);
+  }
+  
+  void _forceType(object, List<Type> types) {
+    if (!types.any((Type T) => object.runtimeType == T)) {
+      throw new TypeError();
+    }
   }
 }

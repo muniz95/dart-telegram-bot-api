@@ -16,7 +16,7 @@ main() {
   });
   bot.onText(new RegExp(r"\/doc"), (msg, match) async {
     File file = new File("${dirname(Platform.script.path)}/file.txt");
-    List<int> doc = await file.readAsBytes();
-    bot.sendDocument(msg['chat']['id'], [doc, "file.txt"]);
+    var doc = await file.open();
+    bot.sendDocument(msg['chat']['id'], doc);
   });
 }
