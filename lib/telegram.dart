@@ -1,4 +1,3 @@
-import 'package:http/http.dart';
 import 'package:mime/mime.dart';
 import 'package:events/events.dart';
 import 'dart:convert';
@@ -7,7 +6,8 @@ import 'dart:io';
 import './errors.dart';
 import './telegramBotWebHook.dart';
 import './telegramBotPolling.dart';
-import 'package:simple_requests/simple_requests.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 // import './telegramBotOptions.dart';
 // const debug = require('debug')('node-telegram-bot-api');
 // const fileType = require('file-type');
@@ -165,17 +165,42 @@ class TelegramBot extends Events {
 
     String _url = this._buildURL(_path);
 
-    print(options);
+    options['polling'] = options['polling'].toString();
+    options['chat_id'] = options['chat_id'].toString();
+    options['timeout'] = options['timeout'].toString();
+    options['offset'] = options['offset'].toString();
+    
+    // print(options);
 
-    return _send("POST", Uri.parse(_url), json: options)
-      .then((res) {
-        if(res["ok"]){
-          return res['result'];
+    // return _send("POST", Uri.parse(_url), json: options)
+    //   .then((res) {
+    //     if(res["ok"]){
+    //       return res['result'];
+    //     }
+    //     throw new TelegramError("${res['error_code']} ${res['description']}", res);
+    //   })
+    //   .catchError((ex){
+    //     print("Erro:::::::::${ex}");
+    //   });
+    
+    return http.post(_url, body: options)
+      .then((resp) {
+        var data;
+        try {
+          data = JSON.decode(resp.body);
         }
-        throw new TelegramError("${res['error_code']} ${res['description']}", res);
+        catch(err) {
+          throw new ParseError("Error parsing Telegram response: ${resp.body}", resp);
+        }
+        
+        if(data["ok"]){
+          return data["result"];
+        }
+        
+        throw new TelegramError("${data['error_code']} ${data['description']}", resp);
       })
-      .catchError((ex){
-        print("Erro:::::::::${ex}");
+      .catchError((err) {
+        print('deu m.... ${err}');
       });
   }
 
@@ -638,26 +663,27 @@ class TelegramBot extends Events {
     if(options == null) options = {};
     if(fileOpts == null) fileOpts = {};
     options['chat_id'] = chatId;
-    options['document'] = doc;
+    // options['document'] = doc;
     options['caption'] = 'test';
-    options['disable_notification'] = false;
+    options['disable_notification'] = false.toString();
     
-    // Map opts = {
-    //   'qs': options
-    // };
-    // opts['qs']['chat_id'] = chatId;
-    // try {
-    //   var sendData = this._formatSendData('document', doc);
-    //   opts['formData'] = sendData[0];
-    //   opts['qs']['document'] = sendData[1];
-    // } catch (ex) {
-    //   print('FIX: find a replacement for Promise object');
-    //   // return Promise.reject(ex);
+    Map opts = {
+      'qs': options
+    };
+    opts['qs']['chat_id'] = chatId;
+    try {
+      var sendData = this._formatSendData('document', doc);
+      opts['formData'] = sendData[0];
+      opts['qs']['document'] = sendData[1];
+    } catch (ex) {
+      print('FIX: find a replacement for Promise object');
+      // return Promise.reject(ex);
+    }
+    print('FIX: find a replacement for Object.keys method');
+    // if (opts['formData'] && Object.keys(fileOpts).length) {
+    //   opts['formData'].document.options = fileOpts;
     // }
-    // print('FIX: find a replacement for Object.keys method');
-    // // if (opts['formData'] && Object.keys(fileOpts).length) {
-    // //   opts['formData'].document.options = fileOpts;
-    // // }
+    
     return this._request('sendDocument', options: options);
   }
   //

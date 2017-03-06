@@ -5,9 +5,9 @@ environment:
 dependencies:
   html: any
   json: any
-  dotenv: any
-  events: any
-  path: any
   path: any
   mime: any
-  simple_requests: any
+  http: any
+  dotenv: any
+  events: any
+  http_parser: any
