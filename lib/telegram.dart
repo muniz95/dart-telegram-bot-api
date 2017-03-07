@@ -170,7 +170,7 @@ class TelegramBot extends Events {
     options['timeout'] = options['timeout'].toString();
     options['offset'] = options['offset'].toString();
     
-    // print(options);
+    print(options);
 
     // return _send("POST", Uri.parse(_url), json: options)
     //   .then((res) {
@@ -183,25 +183,40 @@ class TelegramBot extends Events {
     //     print("Erro:::::::::${ex}");
     //   });
     
-    return http.post(_url, body: options)
-      .then((resp) {
-        var data;
-        try {
-          data = JSON.decode(resp.body);
-        }
-        catch(err) {
-          throw new ParseError("Error parsing Telegram response: ${resp.body}", resp);
-        }
-        
-        if(data["ok"]){
-          return data["result"];
-        }
-        
-        throw new TelegramError("${data['error_code']} ${data['description']}", resp);
-      })
-      .catchError((err) {
-        print('deu m.... ${err}');
+    if(options['formData'] != null && options['formData']['audio'] != null){
+      var request = new http.MultipartRequest("POST", _url);
+      options.forEach((k,v) => request.fields[k] = options[k]);
+      // request.fields['user'] = 'nweiz@google.com';
+      // request.files.add(new http.MultipartFile.fromFile(
+      //     'package',
+      //     new File('build/package.tar.gz'),
+      //     contentType: new MediaType('application', 'x-tar'));
+      request.send().then((response) {
+        print(response.reasonPhrase);
+        // if (response.statusCode == 200) print("Uploaded!");
       });
+    }
+    else{
+      return http.post(_url, body: options)
+        .then((resp) {
+          var data;
+          try {
+            data = JSON.decode(resp.body);
+          }
+          catch(err) {
+            throw new ParseError("Error parsing Telegram response: ${resp.body}", resp);
+          }
+          
+          if(data["ok"]){
+            return data["result"];
+          }
+          
+          throw new TelegramError("${data['error_code']} ${data['description']}", resp);
+        })
+        .catchError((err) {
+          print('deu m.... ${err}');
+        });
+    }
   }
 
   //
@@ -220,6 +235,7 @@ class TelegramBot extends Events {
     var formData;
     var fileName;
     var fileId;
+    
     // // This is a remote file
     // // FIX: find a proper replacement for the stream.Stream type
     // //
@@ -241,7 +257,7 @@ class TelegramBot extends Events {
     // // This is a Stream file
     // FIX: find a replacement for fileType() method
     //
-    else if (data is Stream) {
+    else if (data is Stream || data is http.MultipartFile) {
       print('É um stream de arquivo');
       // exit(0);
       var filetype = {'ext': 'mp3', 'mime': 'audio/mpeg'};
@@ -659,20 +675,16 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#sendDocument
   //  */
-  sendDocument(chatId, doc, [options, fileOpts]) {
+  sendDocument(chatId, doc, [options, fileOpts]) async {
     if(options == null) options = {};
     if(fileOpts == null) fileOpts = {};
-    options['chat_id'] = chatId;
-    // options['document'] = doc;
-    options['caption'] = 'test';
-    options['disable_notification'] = false.toString();
     
     Map opts = {
       'qs': options
     };
     opts['qs']['chat_id'] = chatId;
     try {
-      var sendData = this._formatSendData('document', doc);
+      var sendData = await this._formatSendData('document', doc);
       opts['formData'] = sendData[0];
       opts['qs']['document'] = sendData[1];
     } catch (ex) {

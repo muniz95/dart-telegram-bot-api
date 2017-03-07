@@ -24,7 +24,7 @@ main() {
     //   contentType: new MediaType('text', 'plain'),
     //   filename: "file.txt"
     // );
-    String doc = "https://www.webscorer.com/resources/templatestart";
+    String doc = "http://ubuntu.c3sl.ufpr.br/robots.txt";
     bot.sendDocument(msg['chat']['id'], doc);
   });
 }

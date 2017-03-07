@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:dart_telegram_bot_api/telegram.dart';
 import 'package:dotenv/dotenv.dart' show load, env;
 import 'package:path/path.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'dart:core';
@@ -27,7 +28,15 @@ main() {
     // From file path
     String url = "https://upload.wikimedia.org/wikipedia/commons/c/c8/Example.ogg";
     http.get(url)
-      .then((audio) => bot.sendAudio(msg['chat']['id'], [url, audio]));
+      .then((audio) {
+        http.MultipartFile file = new http.MultipartFile.fromString(
+          "file",
+          audio.body,
+          contentType: new MediaType('audio', 'mpeg'),
+          filename: "audio.mp3"
+        );
+        bot.sendAudio(msg['chat']['id'], file);
+      });
   });
   
   bot.onText(new RegExp(r"\/start"), (msg, match) {
