@@ -148,20 +148,9 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  */
   _request(_path, {options}) {
+    if(options == null) options = {};
     if (this.token == null) {
       return new Future.error(new FatalError('Telegram Bot Token not provided!'));
-    }
-
-    if (this.options['request'] != null) {
-      print('temos um caso aqui');
-      // Object.assign(options, this.options.request);
-    }
-
-    if (options['form'] != null) {
-      this._fixReplyMarkup(options['form']);
-    }
-    if (options['qs'] != null) {
-      this._fixReplyMarkup(options['qs']);
     }
 
     String _url = this._buildURL(_path);
@@ -171,53 +160,27 @@ class TelegramBot extends Events {
     options['timeout'] = options['timeout'].toString();
     options['offset'] = options['offset'].toString();
     
-    print(options);
-
-    // return _send("POST", Uri.parse(_url), json: options)
-    //   .then((res) {
-    //     if(res["ok"]){
-    //       return res['result'];
-    //     }
-    //     throw new TelegramError("${res['error_code']} ${res['description']}", res);
-    //   })
-    //   .catchError((ex){
-    //     print("Erro:::::::::${ex}");
-    //   });
+    // print(options);
     
-    if(options['formData'] != null && options['formData']['audio'] != null){
-      var request = new http.MultipartRequest("POST", _url);
-      options.forEach((k,v) => request.fields[k] = options[k]);
-      // request.fields['user'] = 'nweiz@google.com';
-      // request.files.add(new http.MultipartFile.fromFile(
-      //     'package',
-      //     new File('build/package.tar.gz'),
-      //     contentType: new MediaType('application', 'x-tar'));
-      request.send().then((response) {
-        print(response.reasonPhrase);
-        // if (response.statusCode == 200) print("Uploaded!");
+    return http.post(_url, body: options)
+      .then((resp) {
+        var data;
+        try {
+          data = JSON.decode(resp.body);
+        }
+        catch(err) {
+          throw new ParseError("Error parsing Telegram response: ${resp.body}", resp);
+        }
+        
+        if(data["ok"]){
+          return data["result"];
+        }
+        
+        throw new TelegramError("${data['error_code']} ${data['description']}", resp);
+      })
+      .catchError((err) {
+        print('deu m.... ${err}');
       });
-    }
-    else{
-      return http.post(_url, body: options)
-        .then((resp) {
-          var data;
-          try {
-            data = JSON.decode(resp.body);
-          }
-          catch(err) {
-            throw new ParseError("Error parsing Telegram response: ${resp.body}", resp);
-          }
-          
-          if(data["ok"]){
-            return data["result"];
-          }
-          
-          throw new TelegramError("${data['error_code']} ${data['description']}", resp);
-        })
-        .catchError((err) {
-          print('deu m.... ${err}');
-        });
-    }
   }
 
   //
@@ -842,7 +805,7 @@ class TelegramBot extends Events {
   //  */
   getUserProfilePhotos(userId, {options}) {
     if(options == null) options = {};
-    options['user_id'] = userId;
+    options['user_id'] = userId.toString();
     return this._request('getUserProfilePhotos', options: options);
   }
   //
@@ -860,8 +823,8 @@ class TelegramBot extends Events {
   sendLocation(chatId, latitude, longitude, {options}) {
     if(options == null) options = {};
     options['chat_id'] = chatId;
-    options['latitude'] = latitude;
-    options['longitude'] = longitude;
+    options['latitude'] = latitude.toString();
+    options['longitude'] = longitude.toString();
     return this._request('sendLocation', options: options);
   }
   //
@@ -881,8 +844,8 @@ class TelegramBot extends Events {
   sendVenue(chatId, latitude, longitude, title, address, {options}) {
     if(options == null) options = {};
     options['chat_id'] = chatId;
-    options['latitude'] = latitude;
-    options['longitude'] = longitude;
+    options['latitude'] = latitude.toString();
+    options['longitude'] = longitude.toString();
     options['title'] = title;
     options['address'] = address;
     return this._request('sendVenue', options: options);
@@ -902,7 +865,7 @@ class TelegramBot extends Events {
   sendContact(chatId, phoneNumber, firstName, {options}) {
     if(options == null) options = {};
     options['chat_id'] = chatId;
-    options['phone_number'] = phoneNumber;
+    options['phone_number'] = phoneNumber.toString();
     options['first_name'] = firstName;
     return this._request('sendContact', options: options);
   }
