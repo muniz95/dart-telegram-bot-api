@@ -17,14 +17,14 @@ main() {
     bot.sendMessage(msg['chat']['id'], "It started!");
   });
   bot.onText(new RegExp(r"\/doc"), (msg, match) {
-    // List<int> file = new File("${dirname(Platform.script.path)}/file.txt").readAsBytesSync();
-    // var doc = new MultipartFile.fromBytes(
-    //   'file',
-    //   file,
-    //   contentType: new MediaType('text', 'plain'),
-    //   filename: "file.txt"
-    // );
-    String doc = "http://ubuntu.c3sl.ufpr.br/robots.txt";
+    List<int> file = new File("${dirname(Platform.script.path)}/file.txt").readAsBytesSync();
+    var doc = new MultipartFile.fromBytes(
+      'file',
+      file,
+      contentType: new MediaType('text', 'plain'),
+      filename: "file.txt"
+    );
+    // String doc = "http://ubuntu.c3sl.ufpr.br/robots.txt";
     bot.sendDocument(msg['chat']['id'], doc);
   });
 }

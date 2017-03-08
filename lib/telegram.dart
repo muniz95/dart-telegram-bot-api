@@ -6,6 +6,7 @@ import 'dart:io';
 import './errors.dart';
 import './telegramBotWebHook.dart';
 import './telegramBotPolling.dart';
+import './telegramBotObjects.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 // import './telegramBotOptions.dart';
@@ -621,21 +622,7 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#sendphoto
   //  */
   sendPhoto(chatId, photo, {options}) {
-    if(options == null) options = {};
-    var opts = {
-      'qs': options
-    };
-    opts['qs']['chat_id'] = chatId;
-    try {
-      var sendData = this._formatSendData('photo', photo);
-      opts['formData'] = sendData[0];
-      opts['qs']['photo'] = sendData[1];
-    }
-    catch (ex) {
-      print('FIX: find a replacement for Promise object');
-      // return Promise.reject(ex);
-    }
-    return this._request('sendPhoto', options: opts);
+    throw new Exception("Needs to be implemented");
   }
   //
   // /**
@@ -648,21 +635,7 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#sendaudio
   //  */
   sendAudio(chatId, audio, [options]) async {
-    if(options == null) options = {};
-    Map opts = {
-      'qs': options
-    };
-    opts['qs']['chat_id'] = chatId.toString();
-    try {
-      var sendData = await this._formatSendData('audio', audio);
-      opts['formData'] = sendData[0];
-      opts['qs']['audio'] = sendData[1];
-    }
-    catch (ex) {
-      print("Exception: ${ex}");
-      // return new Future.error(ex);
-    }
-    return this._request('sendAudio', options: opts);
+    throw new Exception("Needs to be implemented");
   }
   //
   // /**
@@ -675,28 +648,8 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#sendDocument
   //  */
-  sendDocument(chatId, doc, [options, fileOpts]) async {
-    if(options == null) options = {};
-    if(fileOpts == null) fileOpts = {};
-    
-    Map opts = {
-      'qs': options
-    };
-    opts['qs']['chat_id'] = chatId;
-    try {
-      var sendData = await this._formatSendData('document', doc);
-      opts['formData'] = sendData[0];
-      opts['qs']['document'] = sendData[1];
-    } catch (ex) {
-      print('FIX: find a replacement for Promise object');
-      // return Promise.reject(ex);
-    }
-    print('FIX: find a replacement for Object.keys method');
-    // if (opts['formData'] && Object.keys(fileOpts).length) {
-    //   opts['formData'].document.options = fileOpts;
-    // }
-    
-    return this._request('sendDocument', options: options);
+  sendDocument(chatId, doc, [options, fileOpts, replyToMessageId, dynamic replyMarkup]) async {
+    throw new Exception("Needs to be implemented");
   }
   //
   // /**
@@ -709,20 +662,7 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#sendsticker
   //  */
   sendSticker(chatId, sticker, {options}) {
-    if(options == null) options = {};
-    Map opts = {
-      'qs': options
-    };
-    opts['qs']['chat_id'] = chatId;
-    try {
-      var sendData = this._formatSendData('sticker', sticker);
-      opts['formData'] = sendData[0];
-      opts['qs']['sticker'] = sendData[1];
-    } catch (ex) {
-      print('FIX: find a replacement for Promise object');
-      // return Promise.reject(ex);
-    }
-    return this._request('sendSticker', options: opts);
+    throw new Exception("Needs to be implemented");
   }
   //
   // /**
@@ -735,21 +675,7 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#sendvideo
   //  */
   sendVideo(chatId, video, {options}) {
-    if(options == null) options = {};
-    Map opts = {
-      'qs': options
-    };
-    opts['qs']['chat_id'] = chatId;
-    try {
-      var sendData = this._formatSendData('video', video);
-      opts['formData'] = sendData[0];
-      opts['qs']['video'] = sendData[1];
-    }
-    catch (ex) {
-      print('FIX: find a replacement for Promise object');
-      // return Promise.reject(ex);
-    }
-    return this._request('sendVideo', options: opts);
+    throw new Exception("Needs to be implemented");
   }
   //
   // /**
@@ -762,20 +688,7 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#sendvoice
   //  */
   sendVoice(chatId, voice, {options}) {
-    if(options == null) options = {};
-    Map opts = {
-      'qs': options
-    };
-    opts['qs']['chat_id'] = chatId;
-    try {
-      var sendData = this._formatSendData('voice', voice);
-      opts['formData'] = sendData[0];
-      opts['qs']['voice'] = sendData[1];
-    } catch (ex) {
-      print('FIX: find a replacement for Promise object');
-      // return Promise.reject(ex);
-    }
-    return this._request('sendVoice', options: opts);
+    throw new Exception("Needs to be implemented");
   }
   //
   //
