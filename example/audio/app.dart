@@ -12,9 +12,9 @@ main() {
   Map options = {'polling': {'autoStart': true}, 'onlyFirstMatch': true};
   TelegramBot bot = new TelegramBot(env['TG_TOKEN'], options: options);
 
-  bot.onText(new RegExp("\/stream"), (msg, match) {
+  bot.onText(new RegExp("\/existing"), (msg, match) {
     // From file path
-    Stream<List<int>> audio = new File("${dirname(Platform.script.path)}/audio.mp3").openRead();
+    List<int> audio = new File("${dirname(Platform.script.path)}/audio.mp3").readAsBytesSync();
     bot.sendAudio(msg['chat']['id'], audio);
   });
 
@@ -26,17 +26,8 @@ main() {
 
   bot.onText(new RegExp("\/remote"), (msg, match) {
     // From file path
-    String url = "https://upload.wikimedia.org/wikipedia/commons/c/c8/Example.ogg";
-    http.get(url)
-      .then((audio) {
-        http.MultipartFile file = new http.MultipartFile.fromString(
-          "file",
-          audio.body,
-          contentType: new MediaType('audio', 'mpeg'),
-          filename: "audio.mp3"
-        );
-        bot.sendAudio(msg['chat']['id'], file);
-      });
+    Uri audio = Uri.parse("https://upload.wikimedia.org/wikipedia/commons/c/c8/Example.ogg");
+    bot.sendAudio(msg['chat']['id'], audio);
   });
   
   bot.onText(new RegExp(r"\/start"), (msg, match) {
