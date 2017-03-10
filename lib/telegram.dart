@@ -2,6 +2,7 @@ import 'package:mime/mime.dart';
 import 'package:events/events.dart';
 import 'dart:convert';
 import 'dart:async';
+import 'dart:core';
 import 'dart:io';
 import './errors.dart';
 import './telegramBotWebHook.dart';
@@ -585,7 +586,20 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#sendphoto
   //  */
   sendPhoto(chatId, photo, {options}) {
-    throw new Exception("Needs to be implemented");
+    var request = new http.MultipartRequest("POST", Uri.parse(this._buildURL("sendPhoto")));
+    MultipartFile mpf = new http.MultipartFile.fromBytes(
+      "photo",
+      photo,
+      contentType: new MediaType('image', 'jpeg')
+    );
+    request.fields['chat_id'] = chatId.toString();
+    request.files.add(mpf);
+    return request.send()
+      .then((response) {
+        print(response.reasonPhrase);
+        return { "result": response.reasonPhrase };
+      })
+      .catchError((err) => print(err));
   }
   //
   // /**
@@ -602,22 +616,25 @@ class TelegramBot extends Events {
     if(audio is Uri){
       print("Uma URL");
     }
-    // A file can also be sent as a stream
+    // A file can also be sent as a byte array
     else if(audio is List) {
       print("Um arquivo");
       var request = new http.MultipartRequest("POST", Uri.parse(this._buildURL("sendAudio")));
-      request.fields['chat_id'] = chatId.toString();
-      request.files.add(new http.MultipartFile.fromBytes(
+      MultipartFile mpf = new http.MultipartFile.fromBytes(
         "audio",
         audio,
-        contentType: new MediaType('audio', 'mpeg'),
-        filename: "audio.mp3"
-      ));
+        contentType: new MediaType('audio', 'mpeg')
+      );
+      request.fields['chat_id'] = chatId.toString();
+      request.files.add(mpf);
       return request.send()
-        .then((response) => response.reasonPhrase)
+        .then((response) {
+          print(response.reasonPhrase);
+          return { "result": response.reasonPhrase };
+        })
         .catchError((err) => print(err));
     }
-    // throw new Exception("Needs to be implemented");
+    throw new Exception("Needs to be implemented");
     // return false;
   }
   //
@@ -631,8 +648,23 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#sendDocument
   //  */
-  sendDocument(chatId, doc, [options, fileOpts, replyToMessageId, dynamic replyMarkup]) async {
-    throw new Exception("Needs to be implemented");
+  sendDocument(chatId, doc, [options, fileOpts, replyToMessageId, dynamic replyMarkup]) {
+    var request = new http.MultipartRequest("POST", Uri.parse(this._buildURL("sendDocument")));
+    MultipartFile mpf = new http.MultipartFile.fromBytes(
+      "document",
+      doc,
+      contentType: new MediaType('text', 'plain')
+    );
+    request.fields["chat_id"] = chatId.toString();
+    request.files.add(mpf);
+    print(doc);
+    print("hora de mandar");
+    request.send()
+      .then((response) {
+        print(response.statusCode);
+        print(response.reasonPhrase);
+        // return { "result": response.reasonPhrase };
+      });
   }
   //
   // /**

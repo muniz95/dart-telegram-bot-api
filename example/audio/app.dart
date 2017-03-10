@@ -14,7 +14,8 @@ main() {
 
   bot.onText(new RegExp("\/existing"), (msg, match) {
     // From file path
-    List<int> audio = new File("${dirname(Platform.script.path)}/audio.mp3").readAsBytesSync();
+    File file = new File("${dirname(Platform.script.path)}/audio.mp3");
+    List<int> audio = file.readAsBytesSync();
     bot.sendAudio(msg['chat']['id'], audio);
   });
 
