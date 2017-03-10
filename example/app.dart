@@ -55,8 +55,8 @@ main() {
       "reply_to_message_id": msg["message_id"].toString(),
       "reply_markup": JSON.encode({
         "keyboard": [
-          ['Yes'],
-          ['No']
+          ['Yes', 'Of course'],
+          ['No', 'Nein']
         ]
       })
     };
