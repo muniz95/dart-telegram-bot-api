@@ -1,6 +1,7 @@
 import 'package:dart_telegram_bot_api/telegram.dart';
 import 'package:dotenv/dotenv.dart' show load, env;
 import 'dart:core';
+import 'dart:convert';
 
 main() {
   load();
@@ -48,5 +49,23 @@ main() {
   });
   bot.onText(new RegExp(r"\/count"), (msg, match) {
     bot.getChatMembersCount(msg['chat']['id']).then((count) => print(count));
+  });
+  bot.onText(new RegExp(r"\/kb"), (msg, match) {
+    Map options = {
+      "reply_to_message_id": msg["message_id"].toString(),
+      "reply_markup": JSON.encode({
+        "keyboard": [
+          ['Yes'],
+          ['No']
+        ]
+      })
+    };
+    bot.sendMessage(msg['chat']['id'], "Reply me?", options: options);
+  });
+  bot.onText(new RegExp(r"\/reply"), (msg, match) {
+    Map options = {
+      "reply_to_message_id": msg["message_id"].toString()
+    };
+    bot.sendMessage(msg['chat']['id'], "dunno lol", options: options);
   });
 }

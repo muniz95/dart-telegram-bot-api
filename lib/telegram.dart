@@ -629,6 +629,7 @@ class TelegramBot extends Events {
       request.files.add(mpf);
       return request.send()
         .then((response) {
+          print(response.statusCode);
           print(response.reasonPhrase);
           return { "result": response.reasonPhrase };
         })
@@ -649,22 +650,19 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#sendDocument
   //  */
   sendDocument(chatId, doc, [options, fileOpts, replyToMessageId, dynamic replyMarkup]) {
-    var request = new http.MultipartRequest("POST", Uri.parse(this._buildURL("sendDocument")));
+    Uri uri = Uri.parse(this._buildURL("sendDocument"));
+    var request = new http.MultipartRequest("POST", uri);
+    request.fields["chat_id"] = chatId.toString();
     MultipartFile mpf = new http.MultipartFile.fromBytes(
       "document",
       doc,
       contentType: new MediaType('text', 'plain')
     );
-    request.fields["chat_id"] = chatId.toString();
     request.files.add(mpf);
     print(doc);
     print("hora de mandar");
-    request.send()
-      .then((response) {
-        print(response.statusCode);
-        print(response.reasonPhrase);
-        // return { "result": response.reasonPhrase };
-      });
+    return request.send()
+      .then((response){});
   }
   //
   // /**

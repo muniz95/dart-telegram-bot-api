@@ -10,7 +10,8 @@ This project is a port of the [Yagop's node-telegram-bot-api](https://github.com
 - [ ] Send video
 - [ ] Send documents
 - [ ] Send stickers
-- [ ] Reply messages (quote a message)
+- [x] Reply messages (quote a message)
+- [x] Send custom keyboards
 - [x] Send location
 - [x] Send venues
 - [x] Send contacts
