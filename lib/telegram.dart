@@ -110,7 +110,7 @@ class TelegramBot extends Events {
   Future<dynamic> _send(String method, url, {json}) async {
     BaseClient bs = new IOClient();
     var request = new Request(method, url);
-    request.headers['Content-Type'] = 'application/json';
+    request.headers['Content-Type'] = 'multipart/form-data';
     request.body = JSON.encode(json);
     var streamedResponse = await bs.send(request);
     var response = await Response.fromStream(streamedResponse);
@@ -618,15 +618,16 @@ class TelegramBot extends Events {
     }
     // A file can also be sent as a byte array
     else if(audio is List) {
-      print("Um arquivo");
-      var request = new http.MultipartRequest("POST", Uri.parse(this._buildURL("sendAudio")));
+      Uri uri = Uri.parse(this._buildURL("sendAudio"));
+      // Uri uri = Uri.parse("https://madr-muniz95.c9users.io/file");
+      var request = new http.MultipartRequest("POST", uri);
       MultipartFile mpf = new http.MultipartFile.fromBytes(
         "audio",
         audio,
         contentType: new MediaType('audio', 'mpeg')
       );
       request.fields['chat_id'] = chatId.toString();
-      request.files.add(mpf);
+      // request.files.add(mpf);
       return request.send()
         .then((response) {
           print(response.statusCode);
