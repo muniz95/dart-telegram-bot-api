@@ -669,7 +669,17 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#sendvideo
   //  */
   sendVideo(chatId, video, {options}) {
-    throw new Exception("Needs to be implemented");
+    if(options == null) options = {};
+    // A file can be sent as an URL, so it can be downloaded and handled by the API
+    if(video is Uri){
+      options["chat_id"] = chatId;
+      options["video"] = video.toString();
+      return this._request("sendVideo", options: options);
+    }
+    // A file can also be sent as a byte array
+    else if(video is List) {
+      throw new Exception("Needs to be implemented");
+    }
   }
   //
   // /**
