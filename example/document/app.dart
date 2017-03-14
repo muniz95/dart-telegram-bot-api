@@ -21,7 +21,7 @@ main() {
     bot.sendDocument(msg['chat']['id'], doc);
   });
   bot.onText(new RegExp(r"\/remote"), (msg, match) {
-    Uri doc = Uri.parse("https://www.vivaolinux.com.br/conf/download.php?codigo=1374");
+    Uri doc = Uri.parse("https://media.readthedocs.org/pdf/dart/stable/dart.pdf");
     bot.sendDocument(msg['chat']['id'], doc);
   });
 }
