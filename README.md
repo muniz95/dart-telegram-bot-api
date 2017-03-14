@@ -22,6 +22,8 @@ This project is a port of the [Yagop's node-telegram-bot-api](https://github.com
   - [x] Via URL
   - [ ] By file uploading
 - [ ] Send stickers
+  - [x] Via URL
+  - [ ] By file uploading
 - [x] Reply messages (quote a message)
 - [x] Send custom keyboards
 - [x] Send location
