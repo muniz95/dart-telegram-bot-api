@@ -7,8 +7,17 @@ This project is a port of the [Yagop's node-telegram-bot-api](https://github.com
 
 - [x] Answer messages and commands
 - [ ] Send audio
+  - [x] Via URL
+  - [ ] By file uploading
 - [ ] Send video
+  - [ ] Via URL
+  - [ ] By file uploading
 - [ ] Send documents
+  - [ ] Via URL
+  - [ ] By file uploading
+- [ ] Send images
+  - [x] Via URL
+  - [ ] By file uploading
 - [ ] Send stickers
 - [x] Reply messages (quote a message)
 - [x] Send custom keyboards

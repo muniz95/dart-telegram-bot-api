@@ -20,4 +20,8 @@ main() {
     List<int> doc = new File("${dirname(Platform.script.path)}/file.txt").readAsBytesSync();
     bot.sendDocument(msg['chat']['id'], doc);
   });
+  bot.onText(new RegExp(r"\/remote"), (msg, match) {
+    Uri doc = Uri.parse("https://www.vivaolinux.com.br/conf/download.php?codigo=1374");
+    bot.sendDocument(msg['chat']['id'], doc);
+  });
 }

@@ -586,20 +586,17 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#sendphoto
   //  */
   sendPhoto(chatId, photo, {options}) {
-    var request = new http.MultipartRequest("POST", Uri.parse(this._buildURL("sendPhoto")));
-    MultipartFile mpf = new http.MultipartFile.fromBytes(
-      "photo",
-      photo,
-      contentType: new MediaType('image', 'jpeg')
-    );
-    request.fields['chat_id'] = chatId.toString();
-    request.files.add(mpf);
-    return request.send()
-      .then((response) {
-        print(response.reasonPhrase);
-        return { "result": response.reasonPhrase };
-      })
-      .catchError((err) => print(err));
+    if(options == null) options = {};
+    // A file can be sent as an URL, so it can be downloaded and handled by the API
+    if(photo is Uri){
+      options["chat_id"] = chatId;
+      options["photo"] = photo.toString();
+      return this._request("sendPhoto", options: options);
+    }
+    // A file can also be sent as a byte array
+    else if(photo is List) {
+      throw new Exception("Needs to be implemented");
+    }
   }
   //
   // /**
@@ -615,7 +612,6 @@ class TelegramBot extends Events {
     if(options == null) options = {};
     // A file can be sent as an URL, so it can be downloaded and handled by the API
     if(audio is Uri){
-      print("Uma URL");
       options["chat_id"] = chatId;
       options["audio"] = audio.toString();
       return this._request("sendAudio", options: options);
@@ -636,20 +632,18 @@ class TelegramBot extends Events {
   //  * @return {Promise}
   //  * @see https://core.telegram.org/bots/api#sendDocument
   //  */
-  sendDocument(chatId, doc, [options, fileOpts, replyToMessageId, dynamic replyMarkup]) {
-    Uri uri = Uri.parse(this._buildURL("sendDocument"));
-    var request = new http.MultipartRequest("POST", uri);
-    request.fields["chat_id"] = chatId.toString();
-    MultipartFile mpf = new http.MultipartFile.fromBytes(
-      "document",
-      doc,
-      contentType: new MediaType('text', 'plain')
-    );
-    request.files.add(mpf);
-    print(doc);
-    print("hora de mandar");
-    return request.send()
-      .then((response){});
+  sendDocument(chatId, document, [options, fileOpts, replyToMessageId, dynamic replyMarkup]) {
+    if(options == null) options = {};
+    // A file can be sent as an URL, so it can be downloaded and handled by the API
+    if(document is Uri){
+      options["chat_id"] = chatId;
+      options["document"] = document.toString();
+      return this._request("sendDocument", options: options);
+    }
+    // A file can also be sent as a byte array
+    else if(document is List) {
+      throw new Exception("Needs to be implemented");
+    }
   }
   //
   // /**

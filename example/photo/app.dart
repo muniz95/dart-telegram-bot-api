@@ -18,6 +18,12 @@ main() {
     List<int> photo = file.readAsBytesSync();
     bot.sendPhoto(msg['chat']['id'], photo);
   });
+
+  bot.onText(new RegExp("\/remote"), (msg, match) {
+    // From file path
+    Uri photo = Uri.parse("https://upload.wikimedia.org/wikipedia/en/5/54/Rally_curitiba_logo.png");
+    bot.sendPhoto(msg['chat']['id'], photo);
+  });
   
   bot.onText(new RegExp(r"\/start"), (msg, match) {
     bot.sendMessage(msg['chat']['id'], "It started!");
