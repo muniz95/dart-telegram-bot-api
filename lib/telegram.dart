@@ -692,7 +692,17 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#sendvoice
   //  */
   sendVoice(chatId, voice, {options}) {
-    throw new Exception("Needs to be implemented");
+    if(options == null) options = {};
+    // A file can be sent as an URL, so it can be downloaded and handled by the API
+    if(voice is Uri){
+      options["chat_id"] = chatId;
+      options["voice"] = voice.toString();
+      return this._request("sendVoice", options: options);
+    }
+    // A file can also be sent as a byte array
+    else if(voice is List) {
+      throw new Exception("Needs to be implemented");
+    }
   }
   //
   //

@@ -1,5 +1,5 @@
 name: dart_telegram_bot_api
-version: 0.6.4
+version: 0.6.5
 environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
