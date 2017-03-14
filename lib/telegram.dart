@@ -612,32 +612,18 @@ class TelegramBot extends Events {
   //  * @see https://core.telegram.org/bots/api#sendaudio
   //  */
   sendAudio(chatId, audio, [options]) {
+    if(options == null) options = {};
     // A file can be sent as an URL, so it can be downloaded and handled by the API
     if(audio is Uri){
       print("Uma URL");
+      options["chat_id"] = chatId;
+      options["audio"] = audio.toString();
+      return this._request("sendAudio", options: options);
     }
     // A file can also be sent as a byte array
     else if(audio is List) {
-      Uri uri = Uri.parse(this._buildURL("sendAudio"));
-      // Uri uri = Uri.parse("https://madr-muniz95.c9users.io/file");
-      var request = new http.MultipartRequest("POST", uri);
-      MultipartFile mpf = new http.MultipartFile.fromBytes(
-        "audio",
-        audio,
-        contentType: new MediaType('audio', 'mpeg')
-      );
-      request.fields['chat_id'] = chatId.toString();
-      // request.files.add(mpf);
-      return request.send()
-        .then((response) {
-          print(response.statusCode);
-          print(response.reasonPhrase);
-          return { "result": response.reasonPhrase };
-        })
-        .catchError((err) => print(err));
+      throw new Exception("Needs to be implemented");
     }
-    throw new Exception("Needs to be implemented");
-    // return false;
   }
   //
   // /**
