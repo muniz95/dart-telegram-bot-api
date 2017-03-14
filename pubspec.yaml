@@ -7,7 +7,8 @@ dependencies:
   json: any
   path: any
   mime: any
-  http: 0.11.3+9
+  http: any
   dotenv: any
   events: any
   http_parser: any
+  command_wrapper: any
