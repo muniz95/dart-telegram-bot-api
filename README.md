@@ -13,7 +13,7 @@ This project is a port of the [Yagop's node-telegram-bot-api](https://github.com
   - [ ] Via URL
   - [ ] By file uploading
 - [ ] Send documents
-  - [ ] Via URL
+  - [x] Via URL (only .zip, .gif and .pdf, as explained in the [Bot's API documentation](https://core.telegram.org/bots/api#sending-files))
   - [ ] By file uploading
 - [ ] Send images
   - [x] Via URL
