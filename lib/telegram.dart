@@ -161,7 +161,7 @@ class TelegramBot extends Events {
     options['timeout'] = options['timeout'].toString();
     options['offset'] = options['offset'].toString();
     
-    // print(options);
+    print(options);
     
     return http.post(_url, body: options)
       .then((resp) {

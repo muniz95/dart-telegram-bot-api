@@ -11,6 +11,7 @@ main() {
   //   bot.sendMessage(msg['chat']['id'], 'hi');
   // });
   bot.onText(new RegExp(r"\/start"), (msg, match) {
+    print("aeeeeeeeee");
     bot.sendMessage(msg['chat']['id'], "It started!");
   });
   bot.onText(new RegExp(r"\/me"), (msg, match) async {
